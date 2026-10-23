@@ -1,0 +1,48 @@
+@startuml DArq_Conversor_Unidades
+!include ../_estilo.iuml
+title Diagrama de arquitectura — Conversor de Unidades RESTful .NET (sin BDD)
+
+node "PC del usuario" {
+  component "CLICON\nConsola .NET Fw 4.7.2\n(HttpClient + JSON)" as CLICON
+  component "CLIESC\nWindows Forms .NET Fw 4.7.2\n(HttpClient + JSON)" as CLIESC
+}
+
+node "Navegador web" {
+  component "Interfaz HTML/CSS/JS" as HTML
+}
+
+node "Servidor web cliente\n(Kestrel :5086)" {
+  component "CLIWEB\nASP.NET Core MVC .NET 8\n(HttpClient + System.Net.Http.Json)" as CLIWEB
+}
+
+node "Celular / tablet Android" {
+  component "CLIMOV\n.NET MAUI (C#)\n(HttpClient + JSON)" as CLIMOV
+}
+
+node "Servidor Kestrel :8086" {
+  component "API REST\nASP.NET Core Web API .NET 9\nJSON · Swagger" as API
+  package "ConversorUnidades.Servidor" {
+    component "Controllers\nAutenticacion · Temperatura ·\nLongitud · Masa" as CTRL
+    component "Modelo\nDTOs JSON · ErrorServicio" as MOD
+    component "Lógica\nConvertidores · Validación · Autenticador" as LOG
+  }
+  file "appsettings.json\n(credenciales monster)" as CFG
+}
+
+HTML --> CLIWEB : HTTP (formularios)
+CLICON --> API : REST / HTTP · JSON
+CLIESC --> API : REST / HTTP · JSON
+CLIWEB --> API : REST / HTTP · JSON
+CLIMOV --> API : REST / HTTP · JSON
+API --> CTRL
+CTRL ..> MOD
+CTRL --> LOG
+LOG ..> CFG : lee usuario y clave
+
+note bottom of API
+  POST /api/autenticacion/login  → 200 | 401
+  GET  /api/{temperatura|longitud|masa}/{operación}?valor=  → 200 | 400
+  Swagger: http://servidor:8086/swagger
+  Errores: { "codigo", "mensaje" }
+end note
+@enduml

@@ -1,0 +1,46 @@
+@startuml DA_Realizar_Conversion
+!include ../_estilo.iuml
+title Diagrama de actividad — CU02/CU03/CU04 Realizar una conversión
+
+|Usuario|
+start
+:Elegir categoría\n(Temperatura, Longitud o Masa);
+|Cliente|
+:Cargar unidades de origen\ndel catálogo de la categoría;
+:Cargar en "A" solo las unidades\nconvertibles desde "De";
+|Usuario|
+repeat
+  :Elegir unidades "De" y "A";
+  if (¿Quiere intercambiarlas?) then (sí)
+    :Presionar el botón Intercambiar;
+    |Cliente|
+    :Intercambiar "De" y "A";
+    |Usuario|
+  endif
+  :Escribir el valor y presionar Convertir;
+  |Cliente|
+  :Leer número (acepta coma o punto);
+  if (¿Es un número válido?) then (no)
+    :Mostrar "Ingrese un número válido";
+  else (sí)
+    :Enviar **GET /api/{categoría}/{operación}?valor=**\n(p. ej. /api/temperatura/celsiusAFahrenheit?valor=100);
+    |Servidor API REST|
+    :Validar valor\n(cero absoluto / no negativo);
+    if (¿Valor físicamente posible?) then (sí)
+      :Calcular con factor exacto;
+      :Responder HTTP 200\nJSON { ..., resultado };
+      |Cliente|
+      :Mostrar resultado con hasta 6 decimales;
+      :Agregar al historial de la sesión;
+    else (no)
+      |Servidor API REST|
+      :Responder HTTP 400\nJSON { codigo: VALOR_INVALIDO, mensaje };
+      |Cliente|
+      :Mostrar el mensaje del servidor en rojo;
+    endif
+  endif
+  |Usuario|
+repeat while (¿Otra conversión?) is (sí)
+-> no;
+stop
+@enduml

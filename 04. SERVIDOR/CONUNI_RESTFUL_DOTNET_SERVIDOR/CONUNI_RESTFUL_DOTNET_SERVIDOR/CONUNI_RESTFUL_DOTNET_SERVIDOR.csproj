@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>ConversorUnidades.Servidor</RootNamespace>
+    <AssemblyName>CONUNI_RESTFUL_DOTNET_SERVIDOR</AssemblyName>
+    <!-- Los comentarios /// de los controladores aparecen en Swagger. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Documento OpenAPI (/swagger/v1/swagger.json) y página de pruebas Swagger UI (/swagger). -->
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.4" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,45 @@
+@startuml DA_Ingresar_Sistema
+!include ../_estilo.iuml
+title Diagrama de actividad — CU01 Ingresar al sistema
+
+|Usuario|
+start
+:Abrir el cliente\n(consola, escritorio, web o móvil);
+repeat
+  :Ingresar usuario y clave;
+  |Cliente|
+  if (¿Campos vacíos?) then (sí)
+    :Mostrar "Ingrese usuario y clave";
+    |Usuario|
+  else (no)
+    |Cliente|
+    :Enviar **POST /api/autenticacion/login**\ncon JSON { usuario, clave };
+    |Servidor API REST|
+    :Autenticador (singleton) compara con\nusuario y clave de appsettings.json;
+    :Comparar credenciales\n(usuario sin distinguir mayúsculas);
+    :Responder HTTP 200 (autenticado)\no HTTP 401 (CREDENCIALES_INVALIDAS);
+    |Cliente|
+    if (¿Servidor disponible?) then (no)
+      :Mostrar "No se pudo conectar con el servidor";
+      |Usuario|
+    else (sí)
+      |Cliente|
+      if (¿Credenciales válidas?) then (sí)
+        :Guardar usuario en la sesión;
+        :Mostrar menú principal;
+        |Usuario|
+        stop
+      else (no)
+        |Cliente|
+        :Sumar intento fallido;
+        :Mostrar intentos restantes;
+      endif
+    endif
+  endif
+  |Cliente|
+repeat while (¿Intentos fallidos < 3?) is (sí)
+-> no;
+:Bloquear el acceso;
+|Usuario|
+stop
+@enduml

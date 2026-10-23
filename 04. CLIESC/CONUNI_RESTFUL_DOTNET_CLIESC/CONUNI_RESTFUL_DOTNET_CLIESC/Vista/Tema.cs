@@ -1,0 +1,73 @@
+﻿using System.Drawing;
+using System.Windows.Forms;
+using ConversorUnidades.Escritorio.Modelo;
+
+namespace ConversorUnidades.Escritorio.Vista
+{
+    /// <summary>Colores, fuentes y controles con el mismo estilo en todas las ventanas.</summary>
+    internal static class Tema
+    {
+        public static readonly Color Primario = Color.FromArgb(0, 105, 80);
+        public static readonly Color PrimarioOscuro = Color.FromArgb(0, 74, 56);
+        public static readonly Color Fondo = Color.FromArgb(243, 246, 245);
+        public static readonly Color Tarjeta = Color.White;
+        public static readonly Color Texto = Color.FromArgb(33, 37, 41);
+        public static readonly Color TextoSuave = Color.FromArgb(108, 117, 125);
+        public static readonly Color Borde = Color.FromArgb(222, 226, 230);
+        public static readonly Color Error = Color.FromArgb(192, 57, 43);
+
+        public static Font Fuente(float tamano, FontStyle estilo = FontStyle.Regular)
+        {
+            return new Font("Segoe UI", tamano, estilo);
+        }
+
+        public static Color ColorDe(Categoria categoria)
+        {
+            switch (categoria)
+            {
+                case Categoria.Temperatura: return Color.FromArgb(214, 93, 14);
+                case Categoria.Longitud: return Color.FromArgb(25, 113, 194);
+                default: return Color.FromArgb(124, 58, 173);
+            }
+        }
+
+        public static string IconoDe(Categoria categoria)
+        {
+            switch (categoria)
+            {
+                case Categoria.Temperatura: return "°C";
+                case Categoria.Longitud: return "m";
+                default: return "kg";
+            }
+        }
+
+        public static Button Boton(string texto, Color fondo)
+        {
+            var boton = new Button
+            {
+                Text = texto,
+                BackColor = fondo,
+                ForeColor = Color.White,
+                FlatStyle = FlatStyle.Flat,
+                Font = Fuente(10f, FontStyle.Bold),
+                Cursor = Cursors.Hand,
+                Height = 38
+            };
+            boton.FlatAppearance.BorderSize = 0;
+            boton.FlatAppearance.MouseOverBackColor = ControlPaint.Dark(fondo, 0.1f);
+            return boton;
+        }
+
+        public static Label Etiqueta(string texto, float tamano = 9.5f, FontStyle estilo = FontStyle.Regular, Color? color = null)
+        {
+            return new Label
+            {
+                Text = texto,
+                AutoSize = true,
+                Font = Fuente(tamano, estilo),
+                ForeColor = color ?? Texto,
+                BackColor = Color.Transparent
+            };
+        }
+    }
+}

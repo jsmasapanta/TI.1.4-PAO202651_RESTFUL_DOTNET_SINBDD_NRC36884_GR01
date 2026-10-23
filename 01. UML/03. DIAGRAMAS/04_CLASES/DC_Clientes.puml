@@ -1,0 +1,104 @@
+@startuml DC_Clientes
+!include ../_estilo.iuml
+title Diagrama de clases — CLIENTES (estructura MVC común; ejemplo: CLIESC)
+
+package "Modelo" {
+  enum Categoria {
+    Temperatura
+    Longitud
+    Masa
+  }
+  class Unidad {
+    + Nombre : string
+    + Simbolo : string
+  }
+  class Conversion {
+    + Categoria : Categoria
+    + UnidadOrigen / SimboloOrigen : string
+    + UnidadDestino / SimboloDestino : string
+    + Ruta : string  (ej. "temperatura/celsiusAFahrenheit")
+    + Descripcion : string
+  }
+  class CatalogoConversiones <<static>> {
+    + Todas : List<Conversion>  (16)
+    + DeCategoria(c) : List<Conversion>
+    + UnidadesOrigen(c) : List<Unidad>
+    + UnidadesDestino(c, origen) : List<Unidad>
+    + Buscar(origen, destino) : Conversion
+  }
+}
+
+package "Servicio" {
+  class SolicitudLogin <<JSON>> {
+    + Usuario : string
+    + Clave : string
+  }
+  class ResultadoConversion <<JSON>> {
+    + UnidadOrigen / UnidadDestino : string
+    + Valor : double
+    + Resultado : double
+  }
+  class ErrorServicio <<JSON>> {
+    + Codigo : string
+    + Mensaje : string
+  }
+  class ClienteConversion <<singleton>> {
+    - {static} instancia : Lazy<ClienteConversion>
+    - http : HttpClient
+    + {static} Instancia : ClienteConversion
+    - ClienteConversion()
+    + UrlServidor : string
+    + Login(usuario, clave) : bool
+    + Convertir(ruta, valor) : double
+    - Enviar(peticion) : HttpResponseMessage
+    - Leer<T>(respuesta) : T
+  }
+  class ErrorConversionException
+}
+
+package "Controlador" {
+  class ControladorConversion {
+    + UsuarioActual : string
+    + IniciarSesionAsync(usuario, clave) : Task<bool>
+    + ConvertirAsync(conversion, valor) : Task<double>
+    + CerrarSesion()
+    + {static} IntentarLeerNumero(texto, out valor) : bool
+    + {static} Formatear(numero) : string
+  }
+}
+
+package "Vista" {
+  class FormLogin
+  class FormPrincipal
+  class PanelConversion {
+    - categoria : Categoria
+    - historial : ListBox
+    - InvertirUnidades()
+    - ConvertirAsync()
+  }
+}
+
+Conversion --> Categoria
+CatalogoConversiones "1" o-- "16" Conversion
+CatalogoConversiones ..> Unidad
+ClienteConversion ..> SolicitudLogin : POST login
+ClienteConversion ..> ResultadoConversion : GET conversión
+ClienteConversion ..> ErrorServicio : lee 400 / 401
+ClienteConversion ..> ErrorConversionException : lanza
+ControladorConversion --> ClienteConversion : ClienteConversion.Instancia
+FormLogin --> ControladorConversion
+FormPrincipal --> ControladorConversion
+FormPrincipal "1" *-- "3" PanelConversion
+PanelConversion --> ControladorConversion
+PanelConversion ..> CatalogoConversiones
+
+note bottom of ClienteConversion
+  Patrón Singleton: una sola instancia por aplicación
+  (constructor privado + Instancia).
+  Web: AddSingleton<ClienteConversion>().
+  Móvil (.NET MAUI): ClienteRest.Instancia y
+  ControladorConversion.Instancia.
+  URL del servidor: App.config / appsettings.json /
+  Preferences (móvil).
+end note
+@enduml

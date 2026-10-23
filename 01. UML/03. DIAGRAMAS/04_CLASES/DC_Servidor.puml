@@ -1,0 +1,116 @@
+@startuml DC_Servidor
+!include ../_estilo.iuml
+title Diagrama de clases — SERVIDOR REST (ConversorUnidades.Servidor)
+
+package "Controllers" {
+  class AutenticacionController <<ApiController>> {
+    + Login(solicitud : SolicitudLogin) : ActionResult<RespuestaLogin>
+    ..
+    POST api/autenticacion/login
+    200 RespuestaLogin · 401 ErrorServicio
+  }
+  abstract class ConversionControllerBase <<ApiController>> {
+    # {abstract} Categoria : string
+    # Convertir(operacion, valor, formula, origen, destino) : ActionResult<ResultadoConversion>
+    ..
+    200 ResultadoConversion · 400 ErrorServicio
+  }
+  class TemperaturaController {
+    route: api/temperatura
+    + CelsiusAFahrenheit(valor) · FahrenheitACelsius(valor)
+    + CelsiusAKelvin(valor) · KelvinACelsius(valor)
+    + FahrenheitAKelvin(valor) · KelvinAFahrenheit(valor)
+  }
+  class LongitudController {
+    route: api/longitud
+    + MetrosAPies(valor) · PiesAMetros(valor)
+    + MetrosAPulgadas(valor) · PulgadasAMetros(valor)
+    + KilometrosAMillas(valor) · MillasAKilometros(valor)
+  }
+  class MasaController {
+    route: api/masa
+    + KilogramosALibras(valor) · LibrasAKilogramos(valor)
+    + GramosAOnzas(valor) · OnzasAGramos(valor)
+  }
+}
+
+package "Modelo (JSON)" {
+  class SolicitudLogin {
+    + Usuario : string
+    + Clave : string
+  }
+  class RespuestaLogin <<record>> {
+    + Autenticado : bool
+    + Usuario : string
+    + Mensaje : string
+  }
+  class ResultadoConversion <<record>> {
+    + Categoria : string
+    + Operacion : string
+    + Valor : double
+    + UnidadOrigen : string
+    + UnidadDestino : string
+    + Resultado : double
+  }
+  class ErrorServicio <<record>> {
+    + Codigo : string
+    + Mensaje : string
+  }
+}
+
+package "Logica" {
+  class ConvertidorTemperatura <<static>> {
+    + CeroAbsolutoCelsius = -273.15
+    + CeroAbsolutoFahrenheit = -459.67
+    + CeroAbsolutoKelvin = 0
+    + CelsiusAFahrenheit(c) : double
+    + ... (6 fórmulas)
+    - Validar(valor, minimo, unidad)
+  }
+  class ConvertidorLongitud <<static>> {
+    + MetrosPorPie = 0.3048
+    + MetrosPorPulgada = 0.0254
+    + KilometrosPorMilla = 1.609344
+    + ... (6 fórmulas)
+  }
+  class ConvertidorMasa <<static>> {
+    + KilogramosPorLibra = 0.45359237
+    + GramosPorOnza = 28.349523125
+    + ... (4 fórmulas)
+  }
+  class Validacion <<static>> {
+    + ValidarNumero(valor)
+    + ValidarNoNegativo(valor, magnitud)
+  }
+  class Autenticador <<singleton>> {
+    - {static} instancia : Autenticador
+    - usuarioValido : string
+    - claveValida : string
+    + {static} Instancia : Autenticador
+    - Autenticador(usuario, clave)
+    + {static} Configurar(configuracion)
+    + Validar(usuario, clave) : bool
+  }
+}
+
+TemperaturaController --|> ConversionControllerBase
+LongitudController --|> ConversionControllerBase
+MasaController --|> ConversionControllerBase
+ConversionControllerBase ..> ResultadoConversion
+ConversionControllerBase ..> ErrorServicio : 400 VALOR_INVALIDO
+AutenticacionController ..> SolicitudLogin
+AutenticacionController ..> RespuestaLogin
+AutenticacionController ..> ErrorServicio : 401
+AutenticacionController ..> Autenticador : Autenticador.Instancia
+TemperaturaController ..> ConvertidorTemperatura
+LongitudController ..> ConvertidorLongitud
+MasaController ..> ConvertidorMasa
+ConvertidorTemperatura ..> Validacion
+ConvertidorLongitud ..> Validacion
+ConvertidorMasa ..> Validacion
+
+note bottom of Autenticador
+  Program.cs llama una vez a Autenticador.Configurar()
+  con la sección "Credenciales" de appsettings.json.
+end note
+@enduml

@@ -1,0 +1,2 @@
+No aplica: el proyecto TI.1.4 es RESTful SIN base de datos.
+Las conversiones se calculan en el servidor y el usuario/clave se configuran en appsettings.json.

@@ -1,0 +1,33 @@
+@startuml DS_Ingresar_Sistema
+!include ../_estilo.iuml
+title Diagrama de secuencia — CU01 Ingresar al sistema
+autonumber
+
+actor Usuario
+participant "Vista\n(FormLogin / Login.cshtml /\nLoginPage)" as Vista
+participant "Controlador" as Ctrl
+participant "ClienteConversion\n(HttpClient · singleton)" as Proxy
+participant "AutenticacionController\n(Kestrel :8086)" as WS
+participant "Autenticador" as Auth
+database "appsettings.json\nCredenciales" as Config
+
+== Al arrancar el servidor (una sola vez) ==
+Auth -> Config : Configurar(): leer Usuario y Clave
+Config --> Auth : monster / monster
+== Inicio de sesión ==
+Usuario -> Vista : ingresa usuario y clave
+Vista -> Ctrl : iniciarSesion(usuario, clave)
+Ctrl -> Proxy : Login(usuario, clave)
+Proxy -> WS : POST /api/autenticacion/login\n{ "usuario": "monster", "clave": "***" }
+WS -> Auth : Validar(usuario, clave)
+Auth --> WS : true / false
+WS --> Proxy : 200 { autenticado: true }\no 401 { codigo: CREDENCIALES_INVALIDAS }
+Proxy --> Ctrl : true (200) / false (401)
+alt credenciales válidas
+  Ctrl --> Vista : sesión iniciada
+  Vista --> Usuario : muestra menú principal
+else credenciales inválidas
+  Ctrl --> Vista : false
+  Vista --> Usuario : "Usuario o clave incorrectos.\nIntentos restantes: n"
+end
+@enduml
