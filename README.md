@@ -318,3 +318,16 @@ En el navegador de cada equipo (otra PC o el celular) abre `http://IP-DEL-SERVID
 | Móvil: *"El servidor tardó demasiado en responder"* | La app tiene la URL del emulador (`10.0.2.2`) | Cambia la URL en la app (Paso 5) |
 | Visual Studio pide instalar un certificado SSL | Certificado de desarrollo de ASP.NET Core | Responde **No**: todo usa HTTP |
 | `Ctrl + F5` no hace nada | Teclado de laptop | Usa **Depurar → Iniciar sin depurar** o `Ctrl + Fn + F5` |
+
+## Documentación del proyecto
+
+| Archivo | Contenido |
+|---|---|
+| `01. UML/01. ERS/ERS_CONVERSION_UNIDADES_RESTFUL_DOTNET_GR01.docx` | Especificación de requisitos (IEEE 830): 13 requisitos funcionales y 8 no funcionales |
+| `01. UML/02. ECUD/ECUD_CONVERSION_UNIDADES_RESTFUL_DOTNET_GR01.docx` | Especificación de los casos de uso CU01 a CU08 |
+| `01. UML/03. DIAGRAMAS/` | Diagramas en PlantUML (`.puml`) con su imagen (`.png`) |
+| `05. DOCUMENTACIÓN/WS_CONUNI_RESTFUL_DOTNET_GR01.docx` | Manual técnico: marco teórico, arquitectura, desarrollo paso a paso con código, pruebas y conclusiones |
+| `05. DOCUMENTACIÓN/MANUAL_RESTFUL_DOTNET_GR01.pptx` | Presentación (16 diapositivas) |
+| `05. DOCUMENTACIÓN/capturas/` | Capturas reales del servidor (Swagger) y de cada cliente |
+
+> Al abrir el manual en Word, si el índice aparece vacío: clic derecho sobre él → **Actualizar campo**.
