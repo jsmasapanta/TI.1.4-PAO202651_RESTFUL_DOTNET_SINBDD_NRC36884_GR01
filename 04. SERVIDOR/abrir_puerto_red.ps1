@@ -1,4 +1,4 @@
-# ===================================================================
+﻿# ===================================================================
 #  Prepara la PC del servidor REST para que los demás integrantes
 #  (web, escritorio, móvil) se conecten por WiFi al puerto 8086.
 #
