@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 
-namespace ConversorUnidades.Movil;
+namespace ec.edu.monster;
 
 public static class MauiProgram
 {

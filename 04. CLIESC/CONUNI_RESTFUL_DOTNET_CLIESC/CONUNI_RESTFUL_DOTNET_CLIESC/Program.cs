@@ -1,9 +1,9 @@
 using System;
 using System.Windows.Forms;
-using ConversorUnidades.Escritorio.Controlador;
-using ConversorUnidades.Escritorio.Vista;
+using ec.edu.monster.controlador;
+using ec.edu.monster.vista;
 
-namespace ConversorUnidades.Escritorio
+namespace ec.edu.monster
 {
     internal static class Program
     {

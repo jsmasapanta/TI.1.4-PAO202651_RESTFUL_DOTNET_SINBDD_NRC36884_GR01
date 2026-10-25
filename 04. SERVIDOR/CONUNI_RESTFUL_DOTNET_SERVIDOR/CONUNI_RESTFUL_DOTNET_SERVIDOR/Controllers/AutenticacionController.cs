@@ -10,25 +10,33 @@ namespace ConversorUnidades.Servidor.Controllers;
 [Produces("application/json")]
 public class AutenticacionController : ControllerBase
 {
-    /// <summary>Valida usuario y clave (monster / monster).</summary>
+    /// <summary>Valida usuario y clave (monster / monster69).</summary>
     /// <remarks>
     /// La clave viaja en el cuerpo (POST), nunca en la URL.
-    /// 200 = credenciales correctas; 401 = usuario o clave incorrectos.
+    /// 200 = credenciales correctas; 401 = usuario o clave incorrectos (con los intentos restantes)
+    /// o usuario bloqueado 2 minutos por superar 3 intentos; 400 = usuario o clave vacíos.
     /// </remarks>
     [HttpPost("login")]
     [ProducesResponseType(typeof(RespuestaLogin), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorServicio), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorServicio), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorServicio), StatusCodes.Status500InternalServerError)]
     public ActionResult<RespuestaLogin> Login([FromBody] SolicitudLogin solicitud)
     {
         try
         {
-            if (Autenticador.Instancia.Validar(solicitud.Usuario, solicitud.Clave))
-            {
-                string usuario = solicitud.Usuario!.Trim();
-                return Ok(new RespuestaLogin(true, usuario, $"Bienvenido, {usuario}."));
-            }
-            return Unauthorized(new ErrorServicio("CREDENCIALES_INVALIDAS", "Usuario o clave incorrectos."));
+            Autenticador.Instancia.Validar(solicitud.Usuario, solicitud.Clave);
+            string usuario = solicitud.Usuario!.Trim();
+            return Ok(new RespuestaLogin(true, usuario, $"Bienvenido, {usuario}."));
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new ErrorServicio("VALOR_INVALIDO", ex.Message));
+        }
+        catch (ReglaNegocioException ex)
+        {
+            // Usuario o clave incorrectos (con los intentos restantes) o usuario bloqueado.
+            return Unauthorized(new ErrorServicio("REGLA_NEGOCIO", ex.Message));
         }
         catch (InvalidOperationException ex)
         {

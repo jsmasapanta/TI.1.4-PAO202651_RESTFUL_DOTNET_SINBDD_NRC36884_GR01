@@ -9,7 +9,7 @@ public class SolicitudLogin
     /// <example>monster</example>
     public string? Usuario { get; set; }
 
-    /// <example>monster</example>
+    /// <example>monster69</example>
     public string? Clave { get; set; }
 }
 
@@ -27,6 +27,6 @@ public record ResultadoConversion(
 
 /// <summary>
 /// Cuerpo de toda respuesta de error (400, 401, 500).
-/// Codigo: VALOR_INVALIDO, CREDENCIALES_INVALIDAS o ERROR_SERVIDOR.
+/// Codigo: VALOR_INVALIDO, REGLA_NEGOCIO (usuario o clave incorrectos, usuario bloqueado) o ERROR_SERVIDOR.
 /// </summary>
 public record ErrorServicio(string Codigo, string Mensaje);

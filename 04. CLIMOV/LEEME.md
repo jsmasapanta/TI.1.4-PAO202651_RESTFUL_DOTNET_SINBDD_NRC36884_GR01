@@ -5,22 +5,23 @@ Aplicación Android en C# que consume el API REST del servidor. Se abre y ejecut
 ## Estructura (MVC + Singleton)
 
 ```
-CONUNI_RESTFUL_DOTNET_CLIMOV.sln
-Directory.Build.props        (obj en ruta corta: Android falla con rutas > 260 caracteres)
 CONUNI_RESTFUL_DOTNET_CLIMOV/
-├── Modelo/Catalogo.cs                    Categoria, Unidad, Conversion (con su ruta REST) y las 16 conversiones
-├── Servicio/ClienteRest.cs               HttpClient + JSON · SINGLETON (ClienteRest.Instancia)
-├── Controlador/ControladorConversion.cs  login, conversión, formato, historial · SINGLETON
-├── Vista/LoginPage.xaml                  CU01 login (3 intentos) + CU08 URL del servidor
-├── Vista/PrincipalPage.xaml              CU02–CU07: categorías, De/A, intercambiar, historial, salir
-└── Platforms/Android/AndroidManifest.xml permiso INTERNET + usesCleartextTraffic (HTTP sin TLS)
+├── ec/edu/monster/modelo/Conversion.cs              Categoria, Unidad, Conversion con su ruta REST (solo get/set)
+├── ec/edu/monster/modelo/Dtos.cs                    objetos JSON (solo get/set)
+├── ec/edu/monster/servicio/ClienteRest.cs           HttpClient + JSON · SINGLETON (ClienteRest.Instancia)
+├── ec/edu/monster/controlador/ControladorConversion.cs  solo pasa las llamadas, sesión e historial · SINGLETON
+├── ec/edu/monster/vista/LoginPage.xaml              CU01 login (mensaje del servidor) + CU08 URL + imagen
+├── ec/edu/monster/vista/PrincipalPage.xaml          CU02–CU07: categorías, De/A, historial, imagen, salir
+├── ec/edu/monster/vista/CatalogoConversiones.cs     opciones de las listas
+├── ec/edu/monster/vista/Formato.cs
+└── Resources/Images/monster.jpg
 ```
 
 El identificador de la app es `ec.edu.espe.conuni.rest` y su nombre en el celular **Conversor REST**, así que se puede tener instalada junto a la app SOAP del TI.1.2.
 
 ## Cómo funciona la llamada REST
 
-1. Login: `POST http://SERVIDOR:8086/api/autenticacion/login` con el JSON `{ "usuario": "monster", "clave": "monster" }`. Si responde **401**, la clave es incorrecta.
+1. Login: `POST http://SERVIDOR:8086/api/autenticacion/login` con el JSON `{ "usuario": "monster", "clave": "monster69" }`. Si responde **401**, la app muestra el `mensaje` del servidor (intentos restantes o usuario bloqueado).
 2. Conversión: `GET http://SERVIDOR:8086/api/temperatura/celsiusAFahrenheit?valor=100` → `{ ..., "resultado": 212 }`.
 3. Si responde **400**, la app muestra el `mensaje` del JSON de error (por ejemplo, el del cero absoluto).
 
@@ -33,7 +34,7 @@ El identificador de la app es `ec.edu.espe.conuni.rest` y su nombre en el celula
    - Por USB (prueba rápida, después de `adb reverse tcp:8086 tcp:8086`): `http://localhost:8086`
    - Por WiFi (servidor con el puerto abierto, ver `04. SERVIDOR\LEEME.md`): `http://IP-DE-LA-PC:8086`
    - Emulador: `http://10.0.2.2:8086`
-5. Usuario `monster`, clave `monster`.
+5. Usuario `monster`, clave `monster69`. La URL por defecto es `http://192.168.100.3:8086`.
 
 Comando `adb reverse` completo:
 

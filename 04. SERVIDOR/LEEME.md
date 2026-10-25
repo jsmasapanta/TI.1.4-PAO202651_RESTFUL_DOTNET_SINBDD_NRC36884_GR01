@@ -21,7 +21,7 @@ CONUNI_RESTFUL_DOTNET_SERVIDOR/
 │   ├── Validacion.cs
 │   └── Autenticador.cs             SINGLETON: lee usuario/clave de appsettings.json una sola vez
 ├── Program.cs                      controladores, Swagger, CORS
-├── appsettings.json                credenciales monster / monster
+├── appsettings.json                credenciales monster / monster69
 ├── Properties/launchSettings.json  escucha en http://*:8086 (todas las tarjetas de red)
 └── CONUNI_RESTFUL_DOTNET_SERVIDOR.http   pruebas rápidas desde Visual Studio
 ```
@@ -30,7 +30,7 @@ CONUNI_RESTFUL_DOTNET_SERVIDOR/
 
 | Método | Ruta | Cuerpo / parámetros | Respuesta correcta |
 |---|---|---|---|
-| POST | `/api/autenticacion/login` | JSON `{ "usuario": "monster", "clave": "monster" }` | `200` `{ "autenticado": true, "usuario": "monster", "mensaje": "Bienvenido, monster." }` |
+| POST | `/api/autenticacion/login` | JSON `{ "usuario": "monster", "clave": "monster69" }` | `200` `{ "autenticado": true, "usuario": "monster", "mensaje": "Bienvenido, monster." }` |
 | GET | `/api/temperatura/celsiusAFahrenheit?valor=100` | `valor` (número) | `200` `{ "categoria": "Temperatura", "operacion": "celsiusAFahrenheit", "valor": 100, "unidadOrigen": "°C", "unidadDestino": "°F", "resultado": 212 }` |
 
 Operaciones disponibles (todas `GET ...?valor=`):
@@ -49,10 +49,13 @@ Todo error trae el mismo JSON: `{ "codigo": "...", "mensaje": "..." }`.
 |---|---|---|
 | 200 | — | Login correcto o conversión correcta |
 | 400 | `VALOR_INVALIDO` | Temperatura bajo el cero absoluto, longitud o masa negativa, `valor` vacío o que no es número |
-| 401 | `CREDENCIALES_INVALIDAS` | Usuario o clave incorrectos |
+| 400 | `VALOR_INVALIDO` | Usuario o clave vacíos |
+| 401 | `REGLA_NEGOCIO` | "Usuario o clave incorrectos. Intentos restantes: N." o, al tercer intento, "Se superaron los 3 intentos. El usuario queda bloqueado 2 minutos." |
 | 500 | `ERROR_SERVIDOR` | Falta configurar las credenciales en `appsettings.json` |
 
-**Credenciales** (`appsettings.json`, sección `Credenciales`): usuario `monster`, clave `monster`. El usuario no distingue mayúsculas.
+**Credenciales** (`appsettings.json`, sección `Credenciales`): usuario `monster`, clave `monster69`. El usuario no distingue mayúsculas.
+
+**Intentos:** `Logica/Autenticador.cs` (Singleton) cuenta los intentos fallidos de cada usuario y, al tercero, lo bloquea 2 minutos. Los clientes no cuentan intentos: muestran el `mensaje` del 401.
 
 ## Ejecutar en Visual Studio
 

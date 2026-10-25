@@ -6,7 +6,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{C9E4A5B6-7D8F-4A1C-9E3B-4F5A6B7C8D92}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>ConversorUnidades.Escritorio</RootNamespace>
+    <RootNamespace>ec.edu.monster</RootNamespace>
     <AssemblyName>CONUNI_RESTFUL_DOTNET_CLIESC</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <LangVersion>7.3</LangVersion>
@@ -43,26 +43,33 @@
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Controlador\ControladorConversion.cs" />
-    <Compile Include="Modelo\CatalogoConversiones.cs" />
-    <Compile Include="Modelo\Conversion.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Servicio\ClienteConversion.cs" />
-    <Compile Include="Servicio\Dtos.cs" />
-    <Compile Include="Vista\FormLogin.cs">
+    <Compile Include="ec\edu\monster\controlador\ControladorConversion.cs" />
+    <Compile Include="ec\edu\monster\modelo\Conversion.cs" />
+    <Compile Include="ec\edu\monster\modelo\Dtos.cs" />
+    <Compile Include="ec\edu\monster\servicio\ClienteConversion.cs" />
+    <Compile Include="ec\edu\monster\servicio\Json.cs" />
+    <Compile Include="ec\edu\monster\vista\CatalogoConversiones.cs" />
+    <Compile Include="ec\edu\monster\vista\FormLogin.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Vista\FormPrincipal.cs">
+    <Compile Include="ec\edu\monster\vista\FormPrincipal.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Vista\PanelConversion.cs">
+    <Compile Include="ec\edu\monster\vista\Formato.cs" />
+    <Compile Include="ec\edu\monster\vista\PanelConversion.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="Vista\Tema.cs" />
+    <Compile Include="ec\edu\monster\vista\Tema.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Recursos\monster.jpg">
+      <LogicalName>monster.jpg</LogicalName>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -9,7 +9,7 @@ No usa base de datos: las conversiones se calculan con fórmulas y factores exac
 | | |
 |---|---|
 | **Usuario** | `monster` |
-| **Clave** | `monster` |
+| **Clave** | `monster69` |
 | **Servidor REST** | `http://localhost:8086` (Swagger: `/swagger`) |
 | **Cliente web** | `http://localhost:5086` |
 | **IDE** | Visual Studio 2022 Community |
@@ -80,7 +80,7 @@ Cada carpeta `04. …` tiene su propio `LEEME.md` con más detalle.
 
 | Método | Ruta | Respuesta |
 |---|---|---|
-| POST | `/api/autenticacion/login` · cuerpo `{ "usuario", "clave" }` | `200 { autenticado, usuario, mensaje }` · `401 CREDENCIALES_INVALIDAS` |
+| POST | `/api/autenticacion/login` · cuerpo `{ "usuario", "clave" }` | `200 { autenticado, usuario, mensaje }` · `401 REGLA_NEGOCIO` (intentos restantes o usuario bloqueado 2 min) · `400 VALOR_INVALIDO` (vacíos) |
 | GET | `/api/temperatura/{operación}?valor=` | `200 { categoria, operacion, valor, unidadOrigen, unidadDestino, resultado }` · `400 VALOR_INVALIDO` |
 | GET | `/api/longitud/{operación}?valor=` | igual |
 | GET | `/api/masa/{operación}?valor=` | igual |
@@ -117,10 +117,13 @@ GET http://localhost:8086/api/temperatura/celsiusAFahrenheit?valor=100
 
 | Cliente | Modelo | Vista | Controlador | Servicio (acceso REST) |
 |---|---|---|---|---|
-| CLICON | `Modelo/Conversion.cs`, `CatalogoConversiones.cs` | `Vista/VistaConsola.cs` | `Controlador/ControladorConsola.cs` | `Servicio/ClienteConversion.cs` |
-| CLIESC | `Modelo/CatalogoConversiones.cs` | `Vista/FormLogin`, `FormPrincipal`, `PanelConversion` | `Controlador/ControladorConversion.cs` | `Servicio/ClienteConversion.cs` |
-| CLIWEB | `Modelo/Catalogo.cs`, `ViewModels.cs` | `Views/Cuenta`, `Views/Conversion` (.cshtml) | `Controllers/CuentaController`, `ConversionController` | `Servicio/ClienteConversion.cs` |
-| CLIMOV | `Modelo/Catalogo.cs` | `Vista/LoginPage.xaml`, `PrincipalPage.xaml` | `Controlador/ControladorConversion.cs` | `Servicio/ClienteRest.cs` |
+| CLICON | `modelo/Conversion.cs`, `Dtos.cs` | `vista/VistaConsola.cs`, `CatalogoConversiones.cs` | `controlador/ControladorConsola.cs` | `servicio/ClienteConversion.cs`, `Json.cs` |
+| CLIESC | `modelo/Conversion.cs`, `Dtos.cs` | `vista/FormLogin`, `FormPrincipal`, `PanelConversion`, `CatalogoConversiones`, `Formato` | `controlador/ControladorConversion.cs` | `servicio/ClienteConversion.cs`, `Json.cs` |
+| CLIWEB | `modelo/Conversion.cs`, `Dtos.cs`, `ViewModels.cs` | `vista/Cuenta`, `vista/Conversion` (.cshtml), `CatalogoConversiones`, `Formato` | `controlador/CuentaController`, `ConversionController` | `servicio/ClienteConversion.cs` |
+| CLIMOV | `modelo/Conversion.cs`, `Dtos.cs` | `vista/LoginPage.xaml`, `PrincipalPage.xaml`, `CatalogoConversiones`, `Formato` | `controlador/ControladorConversion.cs` | `servicio/ClienteRest.cs` |
+
+**Estructura como el GR05:** en los clientes, `modelo/` tiene solo get/set (`Conversion`, `Categoria` y los objetos JSON de `Dtos.cs`), `servicio/` llama al API (`ClienteConversion` Singleton con `HttpClient`; en el móvil `ClienteRest`), `controlador/` solo pasa las llamadas y `vista/` tiene las pantallas, el catálogo de opciones y el formato. Todo va dentro de `ec/edu/monster/`. **Todo lo demás está en el servidor:** el login con **3 intentos** (al tercero el usuario queda bloqueado 2 minutos) y las validaciones (cero absoluto, valores negativos). El cliente solo convierte el texto a número y muestra el `mensaje` del error.
+
 
 El **servidor** está organizado en capas: `Controllers` (recursos REST), `Modelo` (objetos JSON) y `Logica` (cálculos, validación y autenticación). La capa `Logica` es la misma del TI.1.2: solo cambió la forma de exponerla.
 
@@ -131,10 +134,10 @@ Una sola instancia compartida por toda la aplicación, con constructor privado y
 | Dónde | Clase | Cómo se usa |
 |---|---|---|
 | Servidor | `Logica/Autenticador.cs` | `Program.cs` llama una vez a `Autenticador.Configurar(...)`; los controladores usan `Autenticador.Instancia.Validar(usuario, clave)` |
-| CLICON | `Servicio/ClienteConversion.cs` | `ClienteConversion.Instancia` (un solo `HttpClient`, con `Lazy<T>`) |
-| CLIESC | `Servicio/ClienteConversion.cs` | `ClienteConversion.Instancia` |
-| CLIWEB | `Servicio/ClienteConversion.cs` | `builder.Services.AddSingleton<ClienteConversion>()` en `Program.cs` |
-| CLIMOV | `Servicio/ClienteRest.cs` y `Controlador/ControladorConversion.cs` | `ClienteRest.Instancia`, `ControladorConversion.Instancia` |
+| CLICON | `servicio/ClienteConversion.cs` | `ClienteConversion.Instancia` (un solo `HttpClient`, con `Lazy<T>`) |
+| CLIESC | `servicio/ClienteConversion.cs` | `ClienteConversion.Instancia` |
+| CLIWEB | `servicio/ClienteConversion.cs` | `builder.Services.AddSingleton<ClienteConversion>()` en `Program.cs` |
+| CLIMOV | `servicio/ClienteRest.cs` y `controlador/ControladorConversion.cs` | `ClienteRest.Instancia`, `ControladorConversion.Instancia` |
 
 ```csharp
 public sealed class ClienteConversion
@@ -187,25 +190,25 @@ public sealed class ClienteConversion
 
 **Configuración** (`appsettings.json`):
 ```json
-"Credenciales": { "Usuario": "monster", "Clave": "monster" }
+"Credenciales": { "Usuario": "monster", "Clave": "monster69" }
 ```
 
 ## Paso 2 — Cliente consola (`04. CLICON`)
 
 1. Con el servidor encendido, abre **otra ventana** de Visual Studio con `04. CLICON\CONUNI_RESTFUL_DOTNET_CLICON\CONUNI_RESTFUL_DOTNET_CLICON.sln`.
 2. **Depurar → Iniciar sin depurar**.
-3. Usuario `monster`, clave `monster` (se muestra con `*`).
+3. Usuario `monster`, clave `monster69` (se muestra con `*`). Si se equivoca, sale el mensaje del servidor con los intentos restantes.
 4. Navega con los números: **[1] Temperatura, [2] Longitud, [3] Masa → conversión → valor**. Con **[0]** vuelves o cierras sesión.
 
 La URL del servidor está en `App.config`:
 ```xml
-<add key="UrlServidor" value="http://localhost:8086" />
+<add key="UrlServidor" value="http://192.168.100.3:8086" />
 ```
 
 ## Paso 3 — Cliente escritorio (`04. CLIESC`)
 
 1. En otra ventana de Visual Studio, abre `04. CLIESC\CONUNI_RESTFUL_DOTNET_CLIESC\CONUNI_RESTFUL_DOTNET_CLIESC.sln`.
-2. **Depurar → Iniciar sin depurar** e ingresa con `monster` / `monster`.
+2. **Depurar → Iniciar sin depurar** e ingresa con `monster` / `monster69`. A la izquierda se ve la imagen de Monsters Inc.
 3. En el menú de la izquierda elige **Temperatura**, **Longitud** o **Masa**; elige **De** y **A**, escribe el valor y presiona **CONVERTIR** (o Enter).
 4. **⇄** intercambia las unidades; a la derecha está el **Historial de la sesión**; abajo se ve a qué servidor está conectado.
 5. La URL está en `App.config` (`UrlServidor`), igual que en la consola.
@@ -216,11 +219,11 @@ La URL del servidor está en `App.config`:
 2. En el botón verde debe aparecer **CONUNI_RESTFUL_DOTNET_CLIWEB**.
 3. **Depurar → Iniciar sin depurar**. Si pregunta por un certificado SSL, responde **No**.
 4. Se abre una ventana negra (no la cierres) y el navegador en `http://localhost:5086`.
-5. Ingresa con `monster` / `monster` y convierte. La página es *responsive*.
+5. Ingresa con `monster` / `monster69` y convierte. La página es *responsive* y muestra la imagen en el login y en el menú.
 
 La URL del servidor está en `appsettings.json`:
 ```json
-"ServicioRest": { "Url": "http://localhost:8086" }
+"ServicioRest": { "Url": "http://192.168.100.3:8086" }
 ```
 
 ## Paso 5 — Cliente móvil (`04. CLIMOV`)
@@ -290,9 +293,9 @@ En el navegador de cada equipo (otra PC o el celular) abre `http://IP-DEL-SERVID
 
 | # | Caso | Entrada | Resultado esperado |
 |---|---|---|---|
-| 1 | Login correcto | monster / monster | HTTP 200 · acceso al sistema |
-| 2 | Login incorrecto | monster / otra | HTTP 401 · "Usuario o clave incorrectos" |
-| 3 | 3 intentos fallidos | clave mala ×3 | Se bloquea / cierra |
+| 1 | Login correcto | monster / monster69 | HTTP 200 · acceso al sistema |
+| 2 | Login incorrecto | monster / otra | HTTP 401 · "Usuario o clave incorrectos. Intentos restantes: 2." |
+| 3 | 3 intentos fallidos | clave mala ×3 | HTTP 401 · "Se superaron los 3 intentos. El usuario queda bloqueado 2 minutos." (aunque luego se escriba la clave correcta) |
 | 4 | Celsius → Fahrenheit | 100 | 212 °F |
 | 5 | Celsius → Kelvin | 25 | 298.15 K |
 | 6 | Bajo el cero absoluto | −300 °C | HTTP 400 · *no puede ser menor al cero absoluto* |

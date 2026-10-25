@@ -1,33 +1,44 @@
 @startuml DS_Ingresar_Sistema
 !include ../_estilo.iuml
-title Diagrama de secuencia — CU01 Ingresar al sistema
+title Diagrama de secuencia — CU01 Ingresar al sistema (los intentos los controla el servidor)
 autonumber
 
 actor Usuario
-participant "Vista\n(FormLogin / Login.cshtml /\nLoginPage)" as Vista
-participant "Controlador" as Ctrl
-participant "ClienteConversion\n(HttpClient · singleton)" as Proxy
-participant "AutenticacionController\n(Kestrel :8086)" as WS
-participant "Autenticador" as Auth
+participant "vista\n(FormLogin / Login.cshtml /\nLoginPage)" as Vista
+participant "controlador" as Ctrl
+participant "servicio\nClienteConversion (Singleton)" as Proxy
+participant "AutenticacionController\n(API REST :8086)" as WS
+participant "Autenticador\n(Singleton)" as Auth
 database "appsettings.json\nCredenciales" as Config
 
-== Al arrancar el servidor (una sola vez) ==
-Auth -> Config : Configurar(): leer Usuario y Clave
-Config --> Auth : monster / monster
-== Inicio de sesión ==
 Usuario -> Vista : ingresa usuario y clave
-Vista -> Ctrl : iniciarSesion(usuario, clave)
+Vista -> Ctrl : IniciarSesion(usuario, clave)
 Ctrl -> Proxy : Login(usuario, clave)
-Proxy -> WS : POST /api/autenticacion/login\n{ "usuario": "monster", "clave": "***" }
+Proxy -> WS : POST api/autenticacion/login\n{ usuario, clave }
 WS -> Auth : Validar(usuario, clave)
-Auth --> WS : true / false
-WS --> Proxy : 200 { autenticado: true }\no 401 { codigo: CREDENCIALES_INVALIDAS }
-Proxy --> Ctrl : true (200) / false (401)
-alt credenciales válidas
-  Ctrl --> Vista : sesión iniciada
-  Vista --> Usuario : muestra menú principal
-else credenciales inválidas
-  Ctrl --> Vista : false
-  Vista --> Usuario : "Usuario o clave incorrectos.\nIntentos restantes: n"
+alt usuario bloqueado (3 intentos fallidos hace menos de 2 min)
+  Auth --> WS : ReglaNegocioException
+  WS --> Proxy : 401 { codigo: REGLA_NEGOCIO, mensaje: «Usuario bloqueado…» }
+  Proxy --> Ctrl : ErrorServicioException(mensaje)
+  Ctrl --> Vista : ErrorServicioException
+  Vista --> Usuario : mensaje del servidor
+else no bloqueado
+  Auth -> Config : leer Usuario, Clave
+  Config --> Auth : monster / monster69
+  alt credenciales válidas
+    Auth -> Auth : reinicia los intentos
+    Auth --> WS : true
+    WS --> Proxy : 200 { autenticado: true, usuario, mensaje }
+    Proxy --> Ctrl : RespuestaLogin
+    Ctrl --> Vista : sesión iniciada
+    Vista --> Usuario : muestra el menú principal
+  else credenciales inválidas
+    Auth -> Auth : intentos + 1 (al 3.º bloquea 2 min)
+    Auth --> WS : ReglaNegocioException
+    WS --> Proxy : 401 { codigo: REGLA_NEGOCIO, mensaje: «… Intentos restantes: N.» }
+    Proxy --> Ctrl : ErrorServicioException(mensaje)
+    Ctrl --> Vista : ErrorServicioException
+    Vista --> Usuario : mensaje del servidor
+  end
 end
 @enduml

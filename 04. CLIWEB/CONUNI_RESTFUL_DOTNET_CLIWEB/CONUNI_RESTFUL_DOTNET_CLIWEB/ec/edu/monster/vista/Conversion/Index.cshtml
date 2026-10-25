@@ -1,0 +1,121 @@
+@using System.Text.Json
+@model ConversionViewModel
+@{
+    ViewData["Title"] = Model.Categoria.ToString();
+    string clase = Model.Categoria.ToString().ToLowerInvariant();
+    var simbolos = new Dictionary<Categoria, string>
+    {
+        [Categoria.Temperatura] = "°C",
+        [Categoria.Longitud] = "m",
+        [Categoria.Masa] = "kg"
+    };
+}
+
+<div class="app tema-@clase">
+    <aside class="menu">
+        <div class="marca">⇄ Conversor</div>
+        <div class="usuario">Usuario: @ViewData["Usuario"]</div>
+        <nav>
+            @foreach (Categoria c in Enum.GetValues<Categoria>())
+            {
+                <a asp-action="Index" asp-route-categoria="@c"
+                   class="menu-item item-@c.ToString().ToLowerInvariant() @(c == Model.Categoria ? "activo" : "")">
+                    <span class="menu-simbolo">@simbolos[c]</span> @c
+                </a>
+            }
+        </nav>
+        <img class="menu-imagen" src="~/img/monster.jpg" alt="Monsters Inc." asp-append-version="true" />
+        <form asp-controller="Cuenta" asp-action="Logout" method="post" class="salir">
+            <button type="submit" class="boton boton-salir">Cerrar sesión</button>
+        </form>
+    </aside>
+
+    <main class="contenido">
+        <h1 class="titulo">@Model.Categoria <span>· @simbolos[Model.Categoria]</span></h1>
+        <p class="ayuda">Elija las unidades, escriba el valor y presione Convertir (o Enter).</p>
+
+        <div class="columnas">
+            <section class="tarjeta">
+                <form asp-action="Index" method="post" id="formConversion">
+                    <input type="hidden" name="categoria" value="@Model.Categoria" />
+                    <div class="fila-unidades">
+                        <div class="campo">
+                            <label for="origen">De</label>
+                            <select id="origen" name="origen">
+                                @foreach (var u in Model.UnidadesOrigen)
+                                {
+                                    <option value="@u.Simbolo" selected="@(u.Simbolo == Model.Origen)">@Formato.Texto(u)</option>
+                                }
+                            </select>
+                        </div>
+                        <button type="button" class="boton boton-color invertir" id="btnInvertir" title="Intercambiar unidades">⇄</button>
+                        <div class="campo">
+                            <label for="destino">A</label>
+                            <select id="destino" name="destino">
+                                @foreach (var u in Model.UnidadesDestino)
+                                {
+                                    <option value="@u.Simbolo" selected="@(u.Simbolo == Model.Destino)">@Formato.Texto(u)</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <label for="valor">Valor</label>
+                    <div class="fila-valor">
+                        <input id="valor" name="valor" value="@Model.Valor" inputmode="decimal" autocomplete="off" autofocus placeholder="Ej.: 25 o 12.5" />
+                        <button type="submit" class="boton boton-color">CONVERTIR</button>
+                    </div>
+                </form>
+
+                <hr />
+
+                @if (!string.IsNullOrEmpty(Model.Error))
+                {
+                    <div class="resultado error">
+                        <strong>No se pudo convertir</strong>
+                        <p>@Model.Error</p>
+                    </div>
+                }
+                else if (!string.IsNullOrEmpty(Model.Resultado))
+                {
+                    <div class="resultado">
+                        <strong>@Model.Resultado</strong>
+                        <p>@Model.Detalle</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="resultado vacio"><strong>—</strong></div>
+                }
+            </section>
+
+            <section class="historial">
+                <h2>Historial de la sesión</h2>
+                <ul>
+                    @if (Model.Historial.Count == 0)
+                    {
+                        <li class="vacio">Aún no hay conversiones.</li>
+                    }
+                    @foreach (var linea in Model.Historial)
+                    {
+                        <li>@linea</li>
+                    }
+                </ul>
+                <form asp-action="LimpiarHistorial" method="post">
+                    <input type="hidden" name="categoria" value="@Model.Categoria" />
+                    <button type="submit" class="boton boton-gris">Limpiar historial</button>
+                </form>
+            </section>
+        </div>
+
+        <footer class="estado">Conectado a: @ViewData["Servidor"]</footer>
+    </main>
+</div>
+
+@section Scripts {
+    <script>
+        // Mapa origen → destinos posibles, generado desde el catálogo del servidor web.
+        window.mapaDestinos = @Html.Raw(JsonSerializer.Serialize(Model.MapaDestinos));
+    </script>
+    <script src="~/js/conversion.js" asp-append-version="true"></script>
+}

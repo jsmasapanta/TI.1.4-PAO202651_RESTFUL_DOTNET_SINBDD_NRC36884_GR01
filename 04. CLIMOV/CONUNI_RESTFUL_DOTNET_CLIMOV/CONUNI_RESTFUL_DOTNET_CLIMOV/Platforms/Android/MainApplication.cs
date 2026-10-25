@@ -1,7 +1,7 @@
 ﻿using Android.App;
 using Android.Runtime;
 
-namespace ConversorUnidades.Movil;
+namespace ec.edu.monster;
 
 [Application]
 public class MainApplication : MauiApplication

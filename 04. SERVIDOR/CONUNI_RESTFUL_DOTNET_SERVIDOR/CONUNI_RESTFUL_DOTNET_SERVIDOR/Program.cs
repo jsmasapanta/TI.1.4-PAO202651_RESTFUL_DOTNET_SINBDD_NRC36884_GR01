@@ -23,7 +23,7 @@ builder.Services.AddSwaggerGen(opciones =>
     {
         Title = "CONUNI · Conversor de Unidades RESTful .NET",
         Version = "v1",
-        Description = "API REST sin base de datos: login y 16 conversiones de temperatura, longitud y masa. Usuario y clave: monster / monster."
+        Description = "API REST sin base de datos: login y 16 conversiones de temperatura, longitud y masa. Usuario y clave: monster / monster69. El login permite 3 intentos; al tercero el usuario queda bloqueado 2 minutos."
     });
     string xml = Path.Combine(AppContext.BaseDirectory, "CONUNI_RESTFUL_DOTNET_SERVIDOR.xml");
     if (File.Exists(xml))

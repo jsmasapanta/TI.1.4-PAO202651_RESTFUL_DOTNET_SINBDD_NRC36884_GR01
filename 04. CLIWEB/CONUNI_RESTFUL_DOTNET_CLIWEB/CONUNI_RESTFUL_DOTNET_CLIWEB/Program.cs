@@ -1,8 +1,17 @@
-using ConversorUnidades.Web.Servicio;
+using ec.edu.monster.servicio;
+using Microsoft.AspNetCore.Mvc.Razor;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
+// Las vistas viven en ec/edu/monster/vista (no en la carpeta Views por defecto):
+// {1} = nombre del controlador, {0} = nombre de la vista.
+builder.Services.Configure<RazorViewEngineOptions>(opciones =>
+{
+    opciones.ViewLocationFormats.Clear();
+    opciones.ViewLocationFormats.Add("/ec/edu/monster/vista/{1}/{0}.cshtml");
+    opciones.ViewLocationFormats.Add("/ec/edu/monster/vista/Shared/{0}.cshtml");
+});
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(opciones =>
 {

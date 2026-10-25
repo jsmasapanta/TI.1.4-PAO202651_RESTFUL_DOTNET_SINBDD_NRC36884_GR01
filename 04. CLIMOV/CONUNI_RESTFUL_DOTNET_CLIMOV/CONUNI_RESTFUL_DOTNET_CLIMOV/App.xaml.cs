@@ -1,6 +1,6 @@
-﻿using ConversorUnidades.Movil.Vista;
+﻿using ec.edu.monster.vista;
 
-namespace ConversorUnidades.Movil;
+namespace ec.edu.monster;
 
 public partial class App : Application
 {
