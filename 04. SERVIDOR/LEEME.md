@@ -78,3 +78,22 @@ El perfil de ejecución escucha en `http://*:8086`, así que el servidor ya acep
 4. Prueba desde otro equipo: `http://IP-DEL-SERVIDOR:8086/swagger`.
 
 > No hace falta IIS: el servidor corre en Kestrel mientras la ventana negra esté abierta. Si Windows pregunta la primera vez si permite el acceso a la red, responder **Permitir**.
+
+## Publicar en IIS (servidor encendido siempre)
+
+Con IIS el servidor queda encendido aunque se cierre Visual Studio o se reinicie la PC.
+
+1. **Una sola vez:** instalar el **ASP.NET Core Hosting Bundle** de .NET 9: https://dotnet.microsoft.com/download/dotnet/9.0 → *ASP.NET Core Runtime* → *Windows* → **Hosting Bundle**. Después, reiniciar la PC o ejecutar `iisreset` como administrador.
+2. Cerrar la ventana negra del servidor en Visual Studio (Kestrel usa el mismo puerto 8086).
+3. En **Terminal (Administrador)**:
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File "RUTA\04. SERVIDOR\publicar_iis.ps1"
+   ```
+4. El script:
+   - activa IIS y comprueba que esté el Hosting Bundle;
+   - publica el servidor en Release en `C:\inetpub\conuni_rest` (con el `web.config` del módulo ASP.NET Core);
+   - crea el grupo de aplicaciones y el sitio **CONUNI_REST** en el puerto **8086** (*Sin código administrado*);
+   - abre el puerto en el firewall y prueba `GET /api/temperatura/celsiusAFahrenheit?valor=100`.
+5. Comprobar: `http://localhost:8086/swagger` y, desde otro equipo, `http://IP-DEL-SERVIDOR:8086/swagger`.
+
+Si se cambia el código del servidor, volver a ejecutar el script. Si el sitio responde **500.19** o **502.5**, falta el Hosting Bundle o hay que reiniciar IIS (`iisreset`).

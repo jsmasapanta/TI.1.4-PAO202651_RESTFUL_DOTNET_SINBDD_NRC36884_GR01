@@ -253,9 +253,15 @@ Aplicación **Android en C# con .NET MAUI** (sucesor oficial de Xamarin.Forms). 
 | 2 | Web + escritorio | Pasos 3 y 4 en su PC, apuntando a la IP del integrante 1 |
 | 3 | Móvil | Paso 5 en su celular real, apuntando a la IP del integrante 1 |
 
-A diferencia del TI.1.2, **no hace falta IIS**: el servidor escucha en `http://*:8086` (todas las tarjetas de red) mientras su ventana negra esté abierta. Todos deben estar en **la misma red WiFi**.
+Hay dos formas de dejar el servidor disponible en la red. Todos deben estar en **la misma red WiFi**.
 
-### 6.1 Abrir el puerto (integrante 1, una sola vez)
+| | Kestrel (6.1) | IIS (6.1-B) |
+|---|---|---|
+| Cómo | `Ctrl + F5` en Visual Studio | Script `publicar_iis.ps1` |
+| Encendido | Mientras la ventana negra esté abierta | Siempre, aunque se cierre Visual Studio o se reinicie la PC |
+| Requisito | Abrir el puerto 8086 una vez | ASP.NET Core Hosting Bundle 9 |
+
+### 6.1 Opción A — Kestrel: abrir el puerto (integrante 1, una sola vez)
 
 1. Clic derecho en **Inicio** → **Terminal (Administrador)**.
 2. Ejecuta:
@@ -264,6 +270,19 @@ A diferencia del TI.1.2, **no hace falta IIS**: el servidor escucha en `http://*
    ```
 3. El script crea la regla del firewall y muestra la URL del adaptador **Wi-Fi**, por ejemplo `http://192.168.0.106:8086`.
 4. Enciende el servidor (Paso 1). Si Windows pregunta si permite el acceso a la red, responde **Permitir**.
+
+### 6.1-B Opción B — Publicar en IIS (integrante 1)
+
+1. **Una sola vez:** instala el **ASP.NET Core Hosting Bundle** de .NET 9 desde https://dotnet.microsoft.com/download/dotnet/9.0 (columna *ASP.NET Core Runtime* → *Windows* → **Hosting Bundle**). Después reinicia la PC o ejecuta `iisreset` como administrador.
+2. **Cierra la ventana negra del servidor** en Visual Studio: Kestrel también usa el puerto 8086.
+3. Clic derecho en **Inicio** → **Terminal (Administrador)** y ejecuta:
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File "RUTA\DEL\PROYECTO\04. SERVIDOR\publicar_iis.ps1"
+   ```
+4. El script activa IIS, publica el servidor en `C:\inetpub\conuni_rest`, crea el sitio **CONUNI_REST** en el puerto **8086** (grupo de aplicaciones *Sin código administrado*), abre el firewall y prueba el API.
+5. Al final debe mostrar `API OK (HTTP 200)` y la URL del adaptador Wi-Fi.
+
+Desde ese momento el servidor queda encendido en IIS. Si cambias el código del servidor, vuelve a ejecutar el script. Para volver a usar Kestrel, detén el sitio en el *Administrador de IIS*.
 
 ### 6.2 Comprobar la red
 
