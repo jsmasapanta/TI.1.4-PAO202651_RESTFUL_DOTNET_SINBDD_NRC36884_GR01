@@ -7,12 +7,24 @@ namespace ec.edu.monster.vista;
 /// <summary>Pantalla principal: conversiones por categoría (CU02–CU05), historial (CU06) y cierre de sesión (CU07).</summary>
 public partial class PrincipalPage : ContentPage
 {
+    // Mismos colores que la web (estilo Bento): fuerte para textos y botones, claro para el fondo del resultado.
     private static readonly Dictionary<Categoria, Color> ColoresCategoria = new()
     {
-        [Categoria.Temperatura] = Color.FromArgb("#D65D0E"),
-        [Categoria.Longitud] = Color.FromArgb("#1971C2"),
-        [Categoria.Masa] = Color.FromArgb("#7C3AAD")
+        [Categoria.Temperatura] = Color.FromArgb("#D85A30"),
+        [Categoria.Longitud] = Color.FromArgb("#185FA5"),
+        [Categoria.Masa] = Color.FromArgb("#534AB7")
     };
+
+    private static readonly Dictionary<Categoria, Color> ColoresClaros = new()
+    {
+        [Categoria.Temperatura] = Color.FromArgb("#FAECE7"),
+        [Categoria.Longitud] = Color.FromArgb("#E6F1FB"),
+        [Categoria.Masa] = Color.FromArgb("#EEEDFE")
+    };
+
+    private static readonly Color CategoriaInactiva = Color.FromArgb("#37336A");
+    private static readonly Color ErrorFuerte = Color.FromArgb("#A32D2D");
+    private static readonly Color ErrorClaro = Color.FromArgb("#FCEBEB");
 
     private readonly ControladorConversion _controlador = ControladorConversion.Instancia;
     private Categoria _categoria = Categoria.Temperatura;
@@ -21,6 +33,7 @@ public partial class PrincipalPage : ContentPage
     {
         InitializeComponent();
         LblUsuario.Text = "Usuario: " + _controlador.Usuario;
+        LblServidor.Text = _controlador.UrlServidor;
         SeleccionarCategoria(Categoria.Temperatura);
     }
 
@@ -39,16 +52,15 @@ public partial class PrincipalPage : ContentPage
         foreach (var (boton, cat) in new[] { (BtnTemperatura, Categoria.Temperatura), (BtnLongitud, Categoria.Longitud), (BtnMasa, Categoria.Masa) })
         {
             bool activo = cat == categoria;
-            boton.BackgroundColor = activo ? ColoresCategoria[cat] : Colors.White;
-            boton.TextColor = activo ? Colors.White : ColoresCategoria[cat];
+            boton.BackgroundColor = activo ? ColoresCategoria[cat] : CategoriaInactiva;
+            boton.TextColor = Colors.White;
         }
-        LblTitulo.Text = $"{categoria}  ·  {Formato.Simbolo(categoria)}";
-        LblTitulo.TextColor = color;
+        LblTitulo.Text = $"Resultado · {categoria} ({Formato.Simbolo(categoria)})";
         BtnConvertir.BackgroundColor = color;
-        BtnIntercambiar.BackgroundColor = color;
-        BtnIntercambiar.TextColor = Colors.White;
+        BtnIntercambiar.BackgroundColor = ColoresClaros[categoria];
+        BtnIntercambiar.TextColor = color;
         Cargando.Color = color;
-        LblResultado.TextColor = color;
+        PintarResultado(error: false);
 
         PkrOrigen.ItemsSource = CatalogoConversiones.UnidadesOrigen(categoria);
         PkrOrigen.SelectedIndex = 0;
@@ -92,9 +104,8 @@ public partial class PrincipalPage : ContentPage
             double resultado = await _controlador.ConvertirAsync(conversion, valor.Value);
             string entrada = $"{Formato.Numero(valor.Value)} {conversion.Origen.Simbolo}";
             string salida = $"{Formato.Numero(resultado)} {conversion.Destino.Simbolo}";
-            LblResultado.TextColor = ColoresCategoria[_categoria];
+            PintarResultado(error: false);
             LblResultado.Text = salida;
-            LblDetalle.TextColor = Color.FromArgb("#6C757D");
             LblDetalle.Text = $"{entrada} ({conversion.Origen.Nombre})  =  {salida} ({conversion.Destino.Nombre})";
             _controlador.AnotarHistorial(_categoria, $"{DateTime.Now:HH:mm:ss}  ·  {entrada} → {salida}");
             MostrarHistorial();
@@ -132,21 +143,33 @@ public partial class PrincipalPage : ContentPage
             ListaHistorial.Children.Add(new Label { Text = linea, FontSize = 13, TextColor = Color.FromArgb("#212529") });
         }
         LblHistorialVacio.IsVisible = historial.Count == 0;
+        LblContador.Text = historial.Count.ToString();
+        LblContadorPie.Text = "en " + _categoria.ToString().ToLowerInvariant();
     }
 
     private void LimpiarResultado()
     {
         TxtValor.Text = "";
         LblResultado.Text = "—";
-        LblDetalle.Text = "";
+        LblDetalle.Text = "Elija las unidades, escriba el valor y presione Convertir.";
     }
 
     private void MostrarError(string mensaje)
     {
-        LblResultado.Text = "Error";
-        LblResultado.TextColor = Color.FromArgb("#C0392B");
-        LblDetalle.TextColor = Color.FromArgb("#C0392B");
+        PintarResultado(error: true);
+        LblResultado.Text = "No se pudo convertir";
         LblDetalle.Text = mensaje;
+    }
+
+    /// <summary>Tarjeta del resultado: color claro de la categoría, o rojo claro si el servidor rechazó el valor.</summary>
+    private void PintarResultado(bool error)
+    {
+        Color fuerte = error ? ErrorFuerte : ColoresCategoria[_categoria];
+        CeldaResultado.BackgroundColor = error ? ErrorClaro : ColoresClaros[_categoria];
+        LblTitulo.TextColor = fuerte;
+        LblResultado.TextColor = fuerte;
+        LblResultado.FontSize = error ? 22 : 44;
+        LblDetalle.TextColor = error ? ErrorFuerte : Color.FromArgb("#2C2C2A");
     }
 
     private void Ocupado(bool ocupado)

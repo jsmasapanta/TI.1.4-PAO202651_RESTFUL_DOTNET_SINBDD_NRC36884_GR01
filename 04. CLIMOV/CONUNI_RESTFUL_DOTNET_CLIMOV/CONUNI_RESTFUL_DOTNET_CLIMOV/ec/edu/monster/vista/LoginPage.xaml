@@ -1,57 +1,58 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!-- Login con estilo Bento: tarjetas redondeadas sobre fondo cálido, igual que la web. -->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="ec.edu.monster.vista.LoginPage"
              Shell.NavBarIsVisible="False"
              NavigationPage.HasNavigationBar="False"
-             BackgroundColor="{StaticResource Fondo}">
+             BackgroundColor="#F1EFE8">
 
     <ScrollView>
-        <VerticalStackLayout>
+        <VerticalStackLayout Padding="16,32,16,24" Spacing="12">
 
-            <!-- Encabezado -->
-            <VerticalStackLayout BackgroundColor="{StaticResource Primary}" Padding="24,48,24,32" Spacing="6">
-                <Label Text="⇄ Conversor" FontSize="30" FontAttributes="Bold" TextColor="White" />
-                <Label Text="de Unidades · RESTful .NET" FontSize="16" TextColor="#D9EDE7" />
-                <Label Text="Temperatura · Longitud · Masa" FontSize="13" TextColor="#A8D5C6" />
-            </VerticalStackLayout>
+            <!-- Marca -->
+            <Border Padding="20" BackgroundColor="#26215C" StrokeThickness="0" StrokeShape="RoundRectangle 20">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="14">
+                    <Label Text="⇄" FontSize="34" FontAttributes="Bold" TextColor="#9FE1CB" VerticalOptions="Center" />
+                    <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                        <Label Text="Monsters Inc. Converter" FontSize="20" FontAttributes="Bold" TextColor="White" />
+                        <Label Text="Cliente móvil · RESTful .NET" FontSize="13" TextColor="#CECBF6" />
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
 
-            <!-- Imagen -->
-            <Image Source="monster.jpg" Aspect="AspectFill" HeightRequest="260" />
+            <!-- Imagen completa (AspectFit no recorta) -->
+            <Border BackgroundColor="#26215C" StrokeThickness="0" StrokeShape="RoundRectangle 20" Padding="0">
+                <Image Source="monster.jpg" Aspect="AspectFit" HeightRequest="260" />
+            </Border>
 
             <!-- Formulario -->
-            <Border Margin="16,-24,16,16" Padding="20" BackgroundColor="White"
-                    StrokeThickness="0" StrokeShape="RoundRectangle 14">
-                <Border.Shadow>
-                    <Shadow Brush="Black" Opacity="0.12" Radius="12" Offset="0,4" />
-                </Border.Shadow>
-                <VerticalStackLayout Spacing="10">
-                    <Label Text="Iniciar sesión" FontSize="20" FontAttributes="Bold" TextColor="{StaticResource Texto}" />
+            <Border Padding="20" BackgroundColor="White" StrokeThickness="0" StrokeShape="RoundRectangle 20">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Iniciar sesión" FontSize="20" FontAttributes="Bold" TextColor="#2C2C2A" />
 
-                    <Label Text="Usuario" FontAttributes="Bold" TextColor="{StaticResource Texto}" Margin="0,6,0,0" />
+                    <Label Text="Usuario" FontSize="13" TextColor="#6F6E68" Margin="0,6,0,0" />
                     <Entry x:Name="TxtUsuario" Placeholder="monster" ReturnType="Next" />
 
-                    <Label Text="Clave" FontAttributes="Bold" TextColor="{StaticResource Texto}" />
+                    <Label Text="Clave" FontSize="13" TextColor="#6F6E68" />
                     <Entry x:Name="TxtClave" IsPassword="True" Placeholder="••••••" ReturnType="Go"
                            Completed="OnIngresarClicked" />
 
-                    <Label x:Name="LblError" IsVisible="False" TextColor="{StaticResource Error}" FontSize="14" />
+                    <Label x:Name="LblError" IsVisible="False" TextColor="#A32D2D" FontSize="14" />
 
-                    <Button x:Name="BtnIngresar" Text="INGRESAR" Clicked="OnIngresarClicked"
-                            BackgroundColor="{StaticResource Primary}" TextColor="White"
+                    <Button x:Name="BtnIngresar" Text="Ingresar" Clicked="OnIngresarClicked"
+                            BackgroundColor="#3C3489" TextColor="White" CornerRadius="12"
                             FontAttributes="Bold" HeightRequest="50" Margin="0,6,0,0" />
-                    <ActivityIndicator x:Name="Cargando" IsRunning="False" IsVisible="False"
-                                       Color="{StaticResource Primary}" />
+                    <ActivityIndicator x:Name="Cargando" IsRunning="False" IsVisible="False" Color="#3C3489" />
                 </VerticalStackLayout>
             </Border>
 
             <!-- Configuración del servidor (CU08) -->
-            <Border Margin="16,0,16,24" Padding="20" BackgroundColor="White"
-                    StrokeThickness="0" StrokeShape="RoundRectangle 14">
-                <VerticalStackLayout Spacing="8">
-                    <Label Text="Servidor REST" FontAttributes="Bold" TextColor="{StaticResource Texto}" />
-                    <Entry x:Name="TxtUrl" Keyboard="Url" FontSize="14" />
-                    <Label FontSize="12" TextColor="{StaticResource TextoSuave}"
+            <Border Padding="20" BackgroundColor="#E1F5EE" StrokeThickness="0" StrokeShape="RoundRectangle 20">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="Servidor REST" FontSize="13" FontAttributes="Bold" TextColor="#0F6E56" />
+                    <Entry x:Name="TxtUrl" Keyboard="Url" FontSize="14" BackgroundColor="White" />
+                    <Label FontSize="12" TextColor="#0F6E56"
                            Text="Celular real: http://IP-DE-LA-PC:8086 (misma red WiFi). Por cable USB con adb reverse: http://localhost:8086. Emulador: http://10.0.2.2:8086" />
                 </VerticalStackLayout>
             </Border>

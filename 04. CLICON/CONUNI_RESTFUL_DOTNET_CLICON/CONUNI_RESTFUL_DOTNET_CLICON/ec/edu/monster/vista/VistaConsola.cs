@@ -15,7 +15,21 @@ namespace ec.edu.monster.vista
     /// </summary>
     public class VistaConsola
     {
-        private const int Ancho = 56;
+        private const int Ancho = 64;
+
+        // Estilo terminal retro: verde sobre negro, marcos dobles y título MONSTER en grande.
+        private const ConsoleColor Principal = ConsoleColor.Green;
+        private const ConsoleColor Marco = ConsoleColor.DarkGreen;
+
+        private static readonly string[] Titulo =
+        {
+            "███╗   ███╗ ██████╗ ███╗   ██╗███████╗████████╗███████╗██████╗ ",
+            "████╗ ████║██╔═══██╗████╗  ██║██╔════╝╚══██╔══╝██╔════╝██╔══██╗",
+            "██╔████╔██║██║   ██║██╔██╗ ██║███████╗   ██║   █████╗  ██████╔╝",
+            "██║╚██╔╝██║██║   ██║██║╚██╗██║╚════██║   ██║   ██╔══╝  ██╔══██╗",
+            "██║ ╚═╝ ██║╚██████╔╝██║ ╚████║███████║   ██║   ███████╗██║  ██║",
+            "╚═╝     ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚══════╝   ╚═╝   ╚══════╝╚═╝  ╚═╝",
+        };
 
         private readonly ControladorConsola _controlador = new ControladorConsola();
 
@@ -23,7 +37,11 @@ namespace ec.edu.monster.vista
         {
             Console.OutputEncoding = Encoding.UTF8;
             Console.InputEncoding = Encoding.UTF8;
-            Console.Title = "Conversor de Unidades - RESTful .NET";
+            Console.Title = "MONSTERS INC · Conversor de Unidades - RESTful .NET";
+            if (!Console.IsOutputRedirected)
+            {
+                Console.BackgroundColor = ConsoleColor.Black;
+            }
         }
 
         // ================= Flujo de pantallas =================
@@ -125,17 +143,22 @@ namespace ec.edu.monster.vista
             {
                 Console.Clear();
             }
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.WriteLine(new string('═', Ancho));
-            Console.WriteLine(Centrar("CONVERSOR DE UNIDADES · RESTful .NET"));
-            Console.WriteLine(Centrar("ESPE · Arquitectura de Software"));
-            Console.WriteLine(new string('═', Ancho));
-            Console.ResetColor();
+            Console.WriteLine();
+            Console.ForegroundColor = Principal;
+            foreach (string linea in Titulo)
+            {
+                Console.WriteLine(" " + linea);
+            }
+
+            string usuario = string.IsNullOrEmpty(_controlador.Usuario) ? "—" : _controlador.Usuario;
+            AbrirCaja();
+            LineaCaja(Centrar("MONSTERS INC · CONVERSOR DE UNIDADES · RESTful .NET", Ancho - 4), Principal);
+            LineaCaja($"usuario: {usuario}   srv: {Servidor(_controlador.UrlServidor)}", ConsoleColor.Gray);
+            CerrarCaja();
             if (!string.IsNullOrEmpty(subtitulo))
             {
-                Console.WriteLine();
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("  " + subtitulo);
+                Console.WriteLine(" > " + subtitulo);
                 Console.ResetColor();
             }
             Console.WriteLine();
@@ -144,9 +167,50 @@ namespace ec.edu.monster.vista
         public void MostrarServidor(string url)
         {
             Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine("  Servidor: " + url);
+            Console.WriteLine("   Servidor: " + url);
             Console.ResetColor();
             Console.WriteLine();
+        }
+
+        // ================= Marco retro =================
+
+        private static void AbrirCaja()
+        {
+            Console.ForegroundColor = Marco;
+            Console.WriteLine(" ╔" + new string('═', Ancho - 2) + "╗");
+        }
+
+        private static void SeparadorCaja()
+        {
+            Console.ForegroundColor = Marco;
+            Console.WriteLine(" ╠" + new string('═', Ancho - 2) + "╣");
+        }
+
+        private static void CerrarCaja()
+        {
+            Console.ForegroundColor = Marco;
+            Console.WriteLine(" ╚" + new string('═', Ancho - 2) + "╝");
+            Console.ResetColor();
+        }
+
+        /// <summary>Escribe una línea dentro del marco ║ … ║, rellenando hasta el ancho.</summary>
+        private static void LineaCaja(string texto, ConsoleColor color)
+        {
+            int espacio = Ancho - 4;
+            if (texto.Length > espacio) texto = texto.Substring(0, espacio);
+            Console.ForegroundColor = Marco;
+            Console.Write(" ║ ");
+            Console.ForegroundColor = color;
+            Console.Write(texto.PadRight(espacio));
+            Console.ForegroundColor = Marco;
+            Console.WriteLine(" ║");
+            Console.ResetColor();
+        }
+
+        /// <summary>Solo host:puerto de la URL, para que quepa en el marco.</summary>
+        private static string Servidor(string url)
+        {
+            return Uri.TryCreate(url, UriKind.Absolute, out Uri uri) ? $"{uri.Host}:{uri.Port}" : url;
         }
 
         public string PedirTexto(string etiqueta)
@@ -194,13 +258,14 @@ namespace ec.edu.monster.vista
         /// <summary>Muestra opciones numeradas y devuelve la elegida (0 = volver/salir).</summary>
         public int PedirOpcion(IList<string> opciones, string textoCero)
         {
+            AbrirCaja();
             for (int i = 0; i < opciones.Count; i++)
             {
-                Console.WriteLine($"   [{i + 1}] {opciones[i]}");
+                LineaCaja($"[{i + 1}] {opciones[i]}", Principal);
             }
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            Console.WriteLine($"   [0] {textoCero}");
-            Console.ResetColor();
+            SeparadorCaja();
+            LineaCaja($"[0] {textoCero}", ConsoleColor.DarkGray);
+            CerrarCaja();
             Console.WriteLine();
 
             while (true)
@@ -235,24 +300,23 @@ namespace ec.edu.monster.vista
         public void MostrarResultado(Conversion conversion, double valor, double resultado)
         {
             Console.WriteLine();
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("  ┌" + new string('─', Ancho - 4) + "┐");
-            Console.WriteLine("  │" + Centrar($"{Formatear(valor)} {conversion.SimboloOrigen}  =  {Formatear(resultado)} {conversion.SimboloDestino}", Ancho - 4) + "│");
-            Console.WriteLine("  └" + new string('─', Ancho - 4) + "┘");
-            Console.ResetColor();
+            AbrirCaja();
+            LineaCaja($"> {Formatear(valor)} {conversion.SimboloOrigen}  ({conversion.UnidadOrigen})", ConsoleColor.Gray);
+            LineaCaja($"= {Formatear(resultado)} {conversion.SimboloDestino}  ({conversion.UnidadDestino})  ✔", ConsoleColor.White);
+            CerrarCaja();
         }
 
         public void MostrarExito(string mensaje)
         {
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("  ✔ " + mensaje);
+            Console.ForegroundColor = Principal;
+            Console.WriteLine("   ✔ " + mensaje);
             Console.ResetColor();
         }
 
         public void MostrarError(string mensaje)
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("  ✖ " + mensaje);
+            Console.WriteLine("   ✖ " + mensaje);
             Console.ResetColor();
         }
 

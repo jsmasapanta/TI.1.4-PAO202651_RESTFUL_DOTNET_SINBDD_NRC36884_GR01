@@ -7,13 +7,11 @@ using ec.edu.monster.servicio;
 namespace ec.edu.monster.vista
 {
     /// <summary>
-    /// Ventana de inicio de sesión. Devuelve DialogResult.OK si el servidor acepta las credenciales.
-    /// Los 3 intentos y el bloqueo los controla el servidor: aquí solo se muestra su mensaje.
+    /// Ventana de inicio de sesión con estilo Bento. Devuelve DialogResult.OK si el servidor acepta
+    /// las credenciales. Los 3 intentos y el bloqueo los controla el servidor: aquí solo se muestra su mensaje.
     /// </summary>
     public class FormLogin : Form
     {
-        private const int X = 400; // el formulario va a la derecha de la imagen
-
         private readonly ControladorConversion _controlador;
         private readonly TextBox _txtUsuario;
         private readonly TextBox _txtClave;
@@ -24,69 +22,84 @@ namespace ec.edu.monster.vista
         {
             _controlador = controlador;
 
-            Text = "Conversor de Unidades · Iniciar sesión";
+            Text = "Monsters Inc. Converter · Iniciar sesión";
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             StartPosition = FormStartPosition.CenterScreen;
-            ClientSize = new Size(X + 420, 470);
+            ClientSize = new Size(860, 500);
             BackColor = Tema.Fondo;
             Font = Tema.Fuente(9.5f);
             AutoScaleMode = AutoScaleMode.Dpi;
 
-            var imagen = new PictureBox
+            // ---------- Imagen (completa, sin recortar) ----------
+            var celdaImagen = new TarjetaBento { Location = new Point(16, 16), Size = new Size(400, 468), Relleno = Tema.MoradoOscuro };
+            celdaImagen.Controls.Add(new PictureBox
             {
-                Location = new Point(0, 0),
-                Size = new Size(X, 470),
+                Location = new Point(10, 10),
+                Size = new Size(380, 448),
                 SizeMode = PictureBoxSizeMode.Zoom,
-                BackColor = Tema.PrimarioOscuro,
+                BackColor = Tema.MoradoOscuro,
                 Image = Formato.Monster()
-            };
+            });
 
-            var encabezado = new Panel { Location = new Point(X, 0), Size = new Size(420, 130), BackColor = Tema.Primario };
-            var icono = Tema.Etiqueta("⇄", 30f, FontStyle.Bold, Color.White);
-            icono.Location = new Point(28, 30);
-            var titulo = Tema.Etiqueta("Conversor de Unidades", 17f, FontStyle.Bold, Color.White);
-            titulo.Location = new Point(92, 34);
-            var subtitulo = Tema.Etiqueta("Cliente de escritorio · RESTful .NET", 9.5f, FontStyle.Regular, Color.FromArgb(200, 235, 225));
-            subtitulo.Location = new Point(95, 72);
-            encabezado.Controls.AddRange(new Control[] { icono, titulo, subtitulo });
+            // ---------- Marca ----------
+            var celdaMarca = new TarjetaBento { Location = new Point(428, 16), Size = new Size(416, 100), Relleno = Tema.MoradoOscuro };
+            var icono = Tema.Etiqueta("⇄", 26f, FontStyle.Bold, Tema.Menta);
+            icono.Location = new Point(20, 22);
+            var titulo = Tema.Etiqueta("Monsters Inc. Converter", 15f, FontStyle.Bold, Color.White);
+            titulo.Location = new Point(80, 26);
+            var subtitulo = Tema.Etiqueta("Cliente de escritorio · RESTful .NET", 9.5f, FontStyle.Regular, Tema.MoradoClaro);
+            subtitulo.Location = new Point(82, 58);
+            celdaMarca.Controls.AddRange(new Control[] { icono, titulo, subtitulo });
 
-            var lblUsuario = Tema.Etiqueta("Usuario", 9.5f, FontStyle.Bold);
-            lblUsuario.Location = new Point(X + 40, 160);
-            _txtUsuario = new TextBox { Location = new Point(X + 40, 184), Width = 340, Font = Tema.Fuente(11f) };
+            // ---------- Formulario ----------
+            var celdaFormulario = new TarjetaBento { Location = new Point(428, 128), Size = new Size(416, 290), Relleno = Tema.Tarjeta };
+            var lblIniciar = Tema.Etiqueta("Iniciar sesión", 14f, FontStyle.Bold, Tema.Texto);
+            lblIniciar.Location = new Point(24, 16);
 
-            var lblClave = Tema.Etiqueta("Clave", 9.5f, FontStyle.Bold);
-            lblClave.Location = new Point(X + 40, 226);
-            _txtClave = new TextBox { Location = new Point(X + 40, 250), Width = 340, Font = Tema.Fuente(11f), UseSystemPasswordChar = true };
+            var lblUsuario = Tema.Etiqueta("Usuario", 9f, FontStyle.Bold, Tema.TextoSuave);
+            lblUsuario.Location = new Point(26, 58);
+            _txtUsuario = new TextBox { Location = new Point(26, 80), Width = 364, Font = Tema.Fuente(11f), BorderStyle = BorderStyle.FixedSingle };
 
-            var chkMostrar = new CheckBox { Text = "Mostrar clave", Location = new Point(X + 40, 284), AutoSize = true, ForeColor = Tema.TextoSuave };
+            var lblClave = Tema.Etiqueta("Clave", 9f, FontStyle.Bold, Tema.TextoSuave);
+            lblClave.Location = new Point(26, 118);
+            _txtClave = new TextBox { Location = new Point(26, 140), Width = 364, Font = Tema.Fuente(11f), BorderStyle = BorderStyle.FixedSingle, UseSystemPasswordChar = true };
+
+            var chkMostrar = new CheckBox { Text = "Mostrar clave", Location = new Point(26, 174), AutoSize = true, ForeColor = Tema.TextoSuave, BackColor = Color.Transparent };
             chkMostrar.CheckedChanged += (s, e) => _txtClave.UseSystemPasswordChar = !chkMostrar.Checked;
 
-            _btnIngresar = Tema.Boton("INGRESAR", Tema.Primario);
-            _btnIngresar.Location = new Point(X + 40, 318);
-            _btnIngresar.Width = 340;
+            _btnIngresar = Tema.Boton("Ingresar", Tema.Morado);
+            _btnIngresar.Font = Tema.Fuente(11f, FontStyle.Bold);
+            _btnIngresar.Location = new Point(26, 206);
+            _btnIngresar.Size = new Size(364, 44);
             _btnIngresar.Click += BtnIngresar_Click;
 
             _lblMensaje = new Label
             {
-                Location = new Point(X + 40, 366),
-                Size = new Size(340, 44),
+                Location = new Point(26, 254),
+                Size = new Size(364, 32),
                 ForeColor = Tema.Error,
+                BackColor = Color.Transparent,
                 Font = Tema.Fuente(9f),
                 TextAlign = ContentAlignment.TopCenter
             };
+            celdaFormulario.Controls.AddRange(new Control[] { lblIniciar, lblUsuario, _txtUsuario, lblClave, _txtClave, chkMostrar, _btnIngresar, _lblMensaje });
 
+            // ---------- Servidor ----------
+            var celdaServidor = new TarjetaBento { Location = new Point(428, 430), Size = new Size(416, 54), Relleno = Tema.VerdeClaro };
             var lblServidor = new Label
             {
-                Text = "Servidor: " + _controlador.UrlServidor,
-                Location = new Point(X, 440),
-                Size = new Size(420, 30),
-                TextAlign = ContentAlignment.MiddleCenter,
-                ForeColor = Tema.TextoSuave,
-                Font = Tema.Fuente(8f)
+                Text = "Servidor REST: " + _controlador.UrlServidor,
+                Location = new Point(18, 8),
+                Size = new Size(380, 38),
+                TextAlign = ContentAlignment.MiddleLeft,
+                ForeColor = Tema.Verde,
+                BackColor = Color.Transparent,
+                Font = Tema.Fuente(8.5f, FontStyle.Bold)
             };
+            celdaServidor.Controls.Add(lblServidor);
 
-            Controls.AddRange(new Control[] { imagen, encabezado, lblUsuario, _txtUsuario, lblClave, _txtClave, chkMostrar, _btnIngresar, _lblMensaje, lblServidor });
+            Controls.AddRange(new Control[] { celdaImagen, celdaMarca, celdaFormulario, celdaServidor });
             AcceptButton = _btnIngresar;
             Shown += (s, e) => _txtUsuario.Focus();
         }
@@ -119,7 +132,7 @@ namespace ec.edu.monster.vista
         private void CambiarEstadoEspera(bool esperando)
         {
             _btnIngresar.Enabled = !esperando;
-            _btnIngresar.Text = esperando ? "CONECTANDO..." : "INGRESAR";
+            _btnIngresar.Text = esperando ? "Conectando..." : "Ingresar";
             UseWaitCursor = esperando;
             if (esperando)
             {

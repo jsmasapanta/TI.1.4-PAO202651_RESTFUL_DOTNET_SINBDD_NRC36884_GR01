@@ -8,91 +8,59 @@ using ec.edu.monster.modelo;
 namespace ec.edu.monster.vista
 {
     /// <summary>
-    /// Ventana principal: menú lateral con las 3 categorías y el panel de conversión a la derecha.
-    /// Si el usuario cierra sesión, devuelve DialogResult.Retry para volver al login.
+    /// Ventana principal con estilo Bento: barra superior y, debajo, la cuadrícula de tarjetas
+    /// de la categoría elegida (PanelConversion). Si el usuario cierra sesión, devuelve
+    /// DialogResult.Retry para volver al login.
     /// </summary>
     public class FormPrincipal : Form
     {
         private readonly ControladorConversion _controlador;
         private readonly Panel _contenido;
         private readonly Dictionary<Categoria, PanelConversion> _paneles = new Dictionary<Categoria, PanelConversion>();
-        private readonly Dictionary<Categoria, Button> _botonesMenu = new Dictionary<Categoria, Button>();
 
         public FormPrincipal(ControladorConversion controlador)
         {
             _controlador = controlador;
 
-            Text = "Conversor de Unidades · RESTful .NET";
+            Text = "Monsters Inc. Converter · RESTful .NET";
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             StartPosition = FormStartPosition.CenterScreen;
-            ClientSize = new Size(1110, 580);
+            ClientSize = new Size(1120, 650);
             BackColor = Tema.Fondo;
             Font = Tema.Fuente(9.5f);
             AutoScaleMode = AutoScaleMode.Dpi;
 
-            // ---------- Menú lateral ----------
-            var menu = new Panel { Dock = DockStyle.Left, Width = 220, BackColor = Tema.PrimarioOscuro };
-            var marca = Tema.Etiqueta("⇄ Conversor", 16f, FontStyle.Bold, Color.White);
-            marca.Location = new Point(22, 24);
-            var usuario = Tema.Etiqueta("Usuario: " + _controlador.UsuarioActual, 9.5f, FontStyle.Regular, Color.FromArgb(190, 225, 215));
-            usuario.Location = new Point(25, 62);
-            menu.Controls.Add(marca);
-            menu.Controls.Add(usuario);
+            // ---------- Barra superior ----------
+            var logo = new TarjetaBento { Location = new Point(16, 14), Size = new Size(40, 40), Relleno = Tema.MoradoOscuro, Radio = 12 };
+            var flecha = Tema.Etiqueta("⇄", 15f, FontStyle.Bold, Tema.Menta);
+            flecha.Location = new Point(7, 5);
+            logo.Controls.Add(flecha);
 
-            int y = 110;
-            foreach (Categoria categoria in Enum.GetValues(typeof(Categoria)))
-            {
-                Categoria actual = categoria;
-                var boton = new Button
-                {
-                    Text = $"   {Tema.IconoDe(categoria),-4} {categoria}",
-                    TextAlign = ContentAlignment.MiddleLeft,
-                    Location = new Point(0, y),
-                    Size = new Size(220, 48),
-                    FlatStyle = FlatStyle.Flat,
-                    ForeColor = Color.White,
-                    BackColor = Tema.PrimarioOscuro,
-                    Font = Tema.Fuente(11f, FontStyle.Bold),
-                    Cursor = Cursors.Hand
-                };
-                boton.FlatAppearance.BorderSize = 0;
-                boton.FlatAppearance.MouseOverBackColor = Tema.Primario;
-                boton.Click += (s, e) => MostrarCategoria(actual);
-                menu.Controls.Add(boton);
-                _botonesMenu[categoria] = boton;
-                y += 52;
-            }
+            var marca = Tema.Etiqueta("Monsters Inc. Converter", 15f, FontStyle.Bold, Tema.MoradoOscuro);
+            marca.Location = new Point(64, 18);
 
-            var imagen = new PictureBox
-            {
-                Location = new Point(15, y + 14),
-                Size = new Size(190, 160),
-                SizeMode = PictureBoxSizeMode.Zoom,
-                Image = Formato.Monster()
-            };
-            menu.Controls.Add(imagen);
-
-            var btnSalir = Tema.Boton("Cerrar sesión", Color.FromArgb(160, 50, 40));
-            btnSalir.Location = new Point(20, 480);
-            btnSalir.Width = 180;
+            var btnSalir = Tema.Boton("Salir", Color.White, Tema.MoradoOscuro);
+            btnSalir.FlatAppearance.BorderSize = 1;
+            btnSalir.FlatAppearance.BorderColor = Tema.Borde;
+            btnSalir.Size = new Size(86, 34);
+            btnSalir.Location = new Point(ClientSize.Width - 16 - btnSalir.Width, 17);
             btnSalir.Click += (s, e) =>
             {
                 _controlador.CerrarSesion();
                 DialogResult = DialogResult.Retry;
                 Close();
             };
-            menu.Controls.Add(btnSalir);
 
-            // ---------- Barra de estado ----------
-            var estado = new StatusStrip { BackColor = Color.White, SizingGrip = false };
-            estado.Items.Add(new ToolStripStatusLabel("Conectado a: " + _controlador.UrlServidor) { ForeColor = Tema.TextoSuave });
+            var usuario = Tema.Etiqueta(_controlador.UsuarioActual, 10f, FontStyle.Regular, Tema.TextoSuave);
+            usuario.AutoSize = false;
+            usuario.TextAlign = ContentAlignment.MiddleRight;
+            usuario.Size = new Size(200, 34);
+            usuario.Location = new Point(btnSalir.Left - 210, 17);
 
-            _contenido = new Panel { Dock = DockStyle.Fill, BackColor = Tema.Fondo };
+            _contenido = new Panel { Location = new Point(0, 64), Size = new Size(ClientSize.Width, ClientSize.Height - 64), BackColor = Tema.Fondo };
 
-            Controls.Add(_contenido);
-            Controls.Add(menu);
-            Controls.Add(estado);
+            Controls.AddRange(new Control[] { logo, marca, usuario, btnSalir, _contenido });
 
             MostrarCategoria(Categoria.Temperatura);
         }
@@ -101,19 +69,12 @@ namespace ec.edu.monster.vista
         {
             if (!_paneles.TryGetValue(categoria, out PanelConversion panel))
             {
-                panel = new PanelConversion(categoria, _controlador);
+                panel = new PanelConversion(categoria, _controlador, MostrarCategoria);
                 _paneles[categoria] = panel;   // se conserva el historial al cambiar de categoría
             }
 
             _contenido.Controls.Clear();
             _contenido.Controls.Add(panel);
-
-            foreach (var par in _botonesMenu)
-            {
-                bool activo = par.Key == categoria;
-                par.Value.BackColor = activo ? Tema.ColorDe(par.Key) : Tema.PrimarioOscuro;
-                par.Value.FlatAppearance.MouseOverBackColor = activo ? Tema.ColorDe(par.Key) : Tema.Primario;
-            }
             panel.EnfocarValor();
         }
     }

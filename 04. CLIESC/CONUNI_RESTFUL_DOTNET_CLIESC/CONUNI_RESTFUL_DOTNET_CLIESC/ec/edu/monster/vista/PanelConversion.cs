@@ -9,10 +9,19 @@ using ec.edu.monster.servicio;
 namespace ec.edu.monster.vista
 {
     /// <summary>
-    /// Pantalla de conversión de una categoría. Se reutiliza para Temperatura, Longitud y Masa.
+    /// Cuadrícula Bento de una categoría (se reutiliza para Temperatura, Longitud y Masa):
+    ///   [ categorías ][ categorías ][ resultado ][ resultado ]
+    ///   [ conversión ][ conversión ][ resultado ][ resultado ]
+    ///   [ conversión ][ conversión ][ historial ][  imagen   ]
+    ///   [ contador   ][ servidor   ][ historial ][  imagen   ]
     /// </summary>
     public class PanelConversion : UserControl
     {
+        private const int Margen = 16;
+        private const int Separacion = 12;
+        private const int AnchoColumna = 263;
+        private static readonly int[] AltoFila = { 112, 150, 140, 112 };
+
         private readonly Categoria _categoria;
         private readonly ControladorConversion _controlador;
         private readonly Color _color;
@@ -21,11 +30,14 @@ namespace ec.edu.monster.vista
         private readonly ComboBox _cboDestino;
         private readonly TextBox _txtValor;
         private readonly Button _btnConvertir;
+        private readonly TarjetaBento _celdaResultado;
+        private readonly Label _lblTituloResultado;
         private readonly Label _lblResultado;
         private readonly Label _lblDetalle;
         private readonly ListBox _lstHistorial;
+        private readonly Label _lblContador;
 
-        public PanelConversion(Categoria categoria, ControladorConversion controlador)
+        public PanelConversion(Categoria categoria, ControladorConversion controlador, Action<Categoria> alElegirCategoria)
         {
             _categoria = categoria;
             _controlador = controlador;
@@ -35,84 +47,168 @@ namespace ec.edu.monster.vista
             BackColor = Tema.Fondo;
             Font = Tema.Fuente(9.5f);
 
-            var titulo = Tema.Etiqueta($"{categoria}  ·  {Tema.IconoDe(categoria)}", 18f, FontStyle.Bold, _color);
-            titulo.Location = new Point(30, 22);
-            var ayuda = Tema.Etiqueta("Elija las unidades, escriba el valor y presione Convertir (o Enter).", 9.5f, FontStyle.Regular, Tema.TextoSuave);
-            ayuda.Location = new Point(33, 62);
+            // ---------- Categorías ----------
+            TarjetaBento celdaCategorias = Celda(0, 0, 2, 1, Tema.MoradoOscuro);
+            var lblCategoria = Tema.Etiqueta("Categoría", 9f, FontStyle.Regular, Tema.MoradoClaro);
+            lblCategoria.Location = new Point(18, 12);
+            celdaCategorias.Controls.Add(lblCategoria);
+            int x = 18;
+            foreach (Categoria c in Enum.GetValues(typeof(Categoria)))
+            {
+                Categoria actual = c;
+                bool activa = c == categoria;
+                var boton = Tema.Boton($"{Tema.IconoDe(c)}\n{c}", activa ? Tema.ColorDe(c) : Tema.CategoriaInactiva);
+                boton.TextAlign = ContentAlignment.MiddleLeft;
+                boton.Padding = new Padding(8, 0, 0, 0);
+                boton.Location = new Point(x, 38);
+                boton.Size = new Size(156, 58);
+                boton.Click += (s, e) => alElegirCategoria(actual);
+                celdaCategorias.Controls.Add(boton);
+                x += 164;
+            }
 
-            // ---------- Tarjeta de conversión ----------
-            var tarjeta = new Panel { Location = new Point(30, 95), Size = new Size(560, 300), BackColor = Tema.Tarjeta };
-            tarjeta.Paint += (s, e) => ControlPaint.DrawBorder(e.Graphics, tarjeta.ClientRectangle, Tema.Borde, ButtonBorderStyle.Solid);
-
-            var lblDe = Tema.Etiqueta("De", 9.5f, FontStyle.Bold);
-            lblDe.Location = new Point(24, 20);
-            _cboOrigen = CrearCombo(new Point(24, 44));
-
-            var btnInvertir = Tema.Boton("⇄", _color);
-            btnInvertir.Font = Tema.Fuente(14f, FontStyle.Bold);
-            btnInvertir.Location = new Point(258, 40);
-            btnInvertir.Size = new Size(44, 36);
-            new ToolTip().SetToolTip(btnInvertir, "Intercambiar unidades");
-            btnInvertir.Click += (s, e) => InvertirUnidades();
-
-            var lblA = Tema.Etiqueta("A", 9.5f, FontStyle.Bold);
-            lblA.Location = new Point(316, 20);
-            _cboDestino = CrearCombo(new Point(316, 44));
-
-            var lblValor = Tema.Etiqueta("Valor", 9.5f, FontStyle.Bold);
-            lblValor.Location = new Point(24, 96);
-            _txtValor = new TextBox { Location = new Point(24, 120), Width = 330, Font = Tema.Fuente(14f) };
-            _txtValor.KeyDown += TxtValor_KeyDown;
-
-            _btnConvertir = Tema.Boton("CONVERTIR", _color);
-            _btnConvertir.Location = new Point(370, 118);
-            _btnConvertir.Size = new Size(166, 36);
-            _btnConvertir.Click += async (s, e) => await ConvertirAsync();
-
-            var separador = new Label { Location = new Point(24, 176), Size = new Size(512, 1), BackColor = Tema.Borde };
-
+            // ---------- Resultado (la tarjeta protagonista) ----------
+            _celdaResultado = Celda(2, 0, 2, 2, Tema.ColorClaroDe(categoria));
+            _lblTituloResultado = Tema.Etiqueta($"Resultado · {categoria}", 10f, FontStyle.Regular, _color);
+            _lblTituloResultado.Location = new Point(22, 20);
             _lblResultado = new Label
             {
-                Location = new Point(24, 192),
-                Size = new Size(512, 52),
-                Font = Tema.Fuente(22f, FontStyle.Bold),
+                Location = new Point(18, 62),
+                Size = new Size(_celdaResultado.Width - 36, 100),
+                Font = Tema.Fuente(40f, FontStyle.Bold),
                 ForeColor = _color,
-                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.Transparent,
                 Text = "—"
             };
             _lblDetalle = new Label
             {
-                Location = new Point(24, 248),
-                Size = new Size(512, 36),
-                Font = Tema.Fuente(9.5f),
-                ForeColor = Tema.TextoSuave,
-                TextAlign = ContentAlignment.MiddleCenter
+                Location = new Point(22, 170),
+                Size = new Size(_celdaResultado.Width - 44, 70),
+                Font = Tema.Fuente(10f),
+                ForeColor = Tema.Texto,
+                BackColor = Color.Transparent,
+                Text = "Elija las unidades, escriba el valor y presione Convertir (o Enter)."
             };
+            _celdaResultado.Controls.AddRange(new Control[] { _lblTituloResultado, _lblResultado, _lblDetalle });
 
-            tarjeta.Controls.AddRange(new Control[] { lblDe, _cboOrigen, btnInvertir, lblA, _cboDestino, lblValor, _txtValor, _btnConvertir, separador, _lblResultado, _lblDetalle });
+            // ---------- Formulario de conversión ----------
+            TarjetaBento celdaFormulario = Celda(0, 1, 2, 2, Tema.Tarjeta);
+            var lblConversion = Tema.Etiqueta("Conversión", 9f, FontStyle.Regular, Tema.TextoSuave);
+            lblConversion.Location = new Point(20, 14);
+
+            var lblDe = Tema.Etiqueta("De", 9f, FontStyle.Bold, Tema.TextoSuave);
+            lblDe.Location = new Point(20, 44);
+            _cboOrigen = CrearCombo(new Point(20, 66));
+
+            var btnInvertir = Tema.Boton("⇄", Tema.ColorClaroDe(categoria), _color);
+            btnInvertir.Font = Tema.Fuente(14f, FontStyle.Bold);
+            btnInvertir.Location = new Point(250, 61);
+            btnInvertir.Size = new Size(36, 36);
+            new ToolTip().SetToolTip(btnInvertir, "Intercambiar unidades");
+            btnInvertir.Click += (s, e) => InvertirUnidades();
+
+            var lblA = Tema.Etiqueta("A", 9f, FontStyle.Bold, Tema.TextoSuave);
+            lblA.Location = new Point(298, 44);
+            _cboDestino = CrearCombo(new Point(298, 66));
+
+            var lblValor = Tema.Etiqueta("Valor", 9f, FontStyle.Bold, Tema.TextoSuave);
+            lblValor.Location = new Point(20, 120);
+            _txtValor = new TextBox { Location = new Point(20, 142), Width = 498, Font = Tema.Fuente(16f), BorderStyle = BorderStyle.FixedSingle };
+            _txtValor.KeyDown += TxtValor_KeyDown;
+
+            _btnConvertir = Tema.Boton("Convertir", _color);
+            _btnConvertir.Font = Tema.Fuente(11f, FontStyle.Bold);
+            _btnConvertir.Location = new Point(20, 200);
+            _btnConvertir.Size = new Size(498, 44);
+            _btnConvertir.Click += async (s, e) => await ConvertirAsync();
+
+            celdaFormulario.Controls.AddRange(new Control[] { lblConversion, lblDe, _cboOrigen, btnInvertir, lblA, _cboDestino, lblValor, _txtValor, _btnConvertir });
 
             // ---------- Historial ----------
-            var lblHistorial = Tema.Etiqueta("Historial de la sesión", 10f, FontStyle.Bold);
-            lblHistorial.Location = new Point(610, 95);
+            TarjetaBento celdaHistorial = Celda(2, 2, 1, 2, Tema.Tarjeta);
+            var lblHistorial = Tema.Etiqueta("Historial de la sesión", 9f, FontStyle.Regular, Tema.TextoSuave);
+            lblHistorial.Location = new Point(16, 14);
+            var btnLimpiar = new LinkLabel
+            {
+                Text = "Limpiar",
+                AutoSize = true,
+                Location = new Point(celdaHistorial.Width - 62, 14),
+                LinkColor = Tema.TextoSuave,
+                BackColor = Color.Transparent
+            };
+            btnLimpiar.LinkClicked += (s, e) =>
+            {
+                _lstHistorial.Items.Clear();
+                ActualizarContador();
+            };
             _lstHistorial = new ListBox
             {
-                Location = new Point(610, 122),
-                Size = new Size(250, 232),
-                BorderStyle = BorderStyle.FixedSingle,
+                Location = new Point(16, 40),
+                Size = new Size(celdaHistorial.Width - 32, celdaHistorial.Height - 56),
+                BorderStyle = BorderStyle.None,
                 Font = Tema.Fuente(9f),
                 IntegralHeight = false
             };
-            var btnLimpiar = Tema.Boton("Limpiar historial", Tema.TextoSuave);
-            btnLimpiar.Font = Tema.Fuente(9f, FontStyle.Bold);
-            btnLimpiar.Location = new Point(610, 362);
-            btnLimpiar.Size = new Size(250, 32);
-            btnLimpiar.Click += (s, e) => _lstHistorial.Items.Clear();
+            celdaHistorial.Controls.AddRange(new Control[] { lblHistorial, btnLimpiar, _lstHistorial });
 
-            Controls.AddRange(new Control[] { titulo, ayuda, tarjeta, lblHistorial, _lstHistorial, btnLimpiar });
+            // ---------- Imagen de Monsters Inc. (completa, sin recortar) ----------
+            TarjetaBento celdaImagen = Celda(3, 2, 1, 2, Tema.MoradoOscuro);
+            var imagen = new PictureBox
+            {
+                Location = new Point(8, 8),
+                Size = new Size(celdaImagen.Width - 16, celdaImagen.Height - 16),
+                SizeMode = PictureBoxSizeMode.Zoom,
+                BackColor = Tema.MoradoOscuro,
+                Image = Formato.Monster()
+            };
+            celdaImagen.Controls.Add(imagen);
+
+            // ---------- Contador y servidor ----------
+            TarjetaBento celdaContador = Celda(0, 3, 1, 1, Tema.VerdeClaro);
+            var lblConversiones = Tema.Etiqueta("Conversiones", 9f, FontStyle.Regular, Tema.Verde);
+            lblConversiones.Location = new Point(18, 14);
+            _lblContador = Tema.Etiqueta("0", 26f, FontStyle.Bold, Tema.Verde);
+            _lblContador.Location = new Point(14, 34);
+            var lblEn = Tema.Etiqueta("en " + categoria.ToString().ToLowerInvariant(), 9f, FontStyle.Regular, Tema.Verde);
+            lblEn.Location = new Point(18, 82);
+            celdaContador.Controls.AddRange(new Control[] { lblConversiones, _lblContador, lblEn });
+
+            TarjetaBento celdaServidor = Celda(1, 3, 1, 1, Tema.Tarjeta);
+            var lblServidor = Tema.Etiqueta("Servidor REST", 9f, FontStyle.Regular, Tema.TextoSuave);
+            lblServidor.Location = new Point(18, 14);
+            var lblConectado = Tema.Etiqueta("●  Conectado", 10.5f, FontStyle.Bold, Tema.Texto);
+            lblConectado.Location = new Point(16, 38);
+            var lblUrl = new Label
+            {
+                Text = _controlador.UrlServidor,
+                Location = new Point(18, 66),
+                Size = new Size(celdaServidor.Width - 32, 40),
+                Font = Tema.Fuente(8f),
+                ForeColor = Tema.TextoSuave,
+                BackColor = Color.Transparent
+            };
+            celdaServidor.Controls.AddRange(new Control[] { lblServidor, lblConectado, lblUrl });
+
+            Controls.AddRange(new Control[] { celdaCategorias, _celdaResultado, celdaFormulario, celdaHistorial, celdaImagen, celdaContador, celdaServidor });
 
             _cboOrigen.SelectedIndexChanged += (s, e) => CargarDestinos(null);
             _cboOrigen.Items.AddRange(CatalogoConversiones.UnidadesOrigen(categoria).Cast<object>().ToArray());
             _cboOrigen.SelectedIndex = 0;
+        }
+
+        /// <summary>Crea una tarjeta que ocupa columnas y filas de la cuadrícula Bento.</summary>
+        private static TarjetaBento Celda(int columna, int fila, int columnas, int filas, Color relleno)
+        {
+            int y = 0;
+            for (int i = 0; i < fila; i++) y += AltoFila[i] + Separacion;
+            int alto = (filas - 1) * Separacion;
+            for (int i = fila; i < fila + filas; i++) alto += AltoFila[i];
+            return new TarjetaBento
+            {
+                Location = new Point(Margen + columna * (AnchoColumna + Separacion), y),
+                Size = new Size(columnas * AnchoColumna + (columnas - 1) * Separacion, alto),
+                Relleno = relleno
+            };
         }
 
         private static ComboBox CrearCombo(Point ubicacion)
@@ -122,6 +218,7 @@ namespace ec.edu.monster.vista
                 Location = ubicacion,
                 Width = 220,
                 DropDownStyle = ComboBoxStyle.DropDownList,
+                FlatStyle = FlatStyle.Flat,
                 Font = Tema.Fuente(10.5f)
             };
         }
@@ -192,12 +289,11 @@ namespace ec.edu.monster.vista
                 string entrada = $"{Formato.Numero(valor)} {conversion.SimboloOrigen}";
                 string salida = $"{Formato.Numero(resultado)} {conversion.SimboloDestino}";
 
-                _lblResultado.ForeColor = _color;
-                _lblResultado.Font = Tema.Fuente(22f, FontStyle.Bold);
+                PintarResultado(error: false);
                 _lblResultado.Text = salida;
-                _lblDetalle.ForeColor = Tema.TextoSuave;
                 _lblDetalle.Text = $"{entrada} ({conversion.UnidadOrigen})  =  {salida} ({conversion.UnidadDestino})";
                 _lstHistorial.Items.Insert(0, $"{DateTime.Now:HH:mm:ss}   {entrada} → {salida}");
+                ActualizarContador();
             }
             catch (ErrorServicioException ex)
             {
@@ -206,7 +302,7 @@ namespace ec.edu.monster.vista
             finally
             {
                 _btnConvertir.Enabled = true;
-                _btnConvertir.Text = "CONVERTIR";
+                _btnConvertir.Text = "Convertir";
                 _txtValor.Focus();
                 _txtValor.SelectAll();
             }
@@ -214,19 +310,34 @@ namespace ec.edu.monster.vista
 
         private void MostrarError(string mensaje)
         {
-            _lblResultado.ForeColor = Tema.Error;
-            _lblResultado.Font = Tema.Fuente(11f, FontStyle.Bold);
+            PintarResultado(error: true);
             _lblResultado.Text = "No se pudo convertir";
-            _lblDetalle.ForeColor = Tema.Error;
             _lblDetalle.Text = mensaje;
         }
 
         private void LimpiarResultado()
         {
-            _lblResultado.ForeColor = _color;
-            _lblResultado.Font = Tema.Fuente(22f, FontStyle.Bold);
+            PintarResultado(error: false);
             _lblResultado.Text = "—";
-            _lblDetalle.Text = string.Empty;
+            _lblDetalle.Text = "Elija las unidades, escriba el valor y presione Convertir (o Enter).";
+        }
+
+        /// <summary>Tarjeta del resultado: color claro de la categoría, o rojo claro si el servidor rechazó el valor.</summary>
+        private void PintarResultado(bool error)
+        {
+            Color fuerte = error ? Tema.Error : _color;
+            _celdaResultado.Relleno = error ? Tema.ErrorClaro : Tema.ColorClaroDe(_categoria);
+            _lblTituloResultado.ForeColor = fuerte;
+            _lblResultado.ForeColor = fuerte;
+            _lblResultado.Font = Tema.Fuente(error ? 18f : 40f, FontStyle.Bold);
+            _lblResultado.Height = error ? 44 : 100;
+            _lblDetalle.Top = error ? 110 : 170;
+            _lblDetalle.ForeColor = error ? Tema.Error : Tema.Texto;
+        }
+
+        private void ActualizarContador()
+        {
+            _lblContador.Text = _lstHistorial.Items.Count.ToString();
         }
 
         public void EnfocarValor()

@@ -41,7 +41,7 @@ No usa base de datos: las conversiones se calculan con fórmulas y factores exac
 ```
                          ┌──────────────────────────────────────────────┐
   CLICON (consola)  ───► │                                              │
-  CLIESC (escritorio) ─► │   Servidor Kestrel :8086                     │
+  CLIESC (escritorio) ─► │   Servidor IIS :8086 (sitio CONUNI_REST)     │
   CLIWEB (navegador) ──► │   ASP.NET Core Web API (.NET 9) · JSON       │
      └ ASP.NET MVC :5086 │     ├── Controllers  Autenticacion,          │
   CLIMOV (Android) ────► │     │                Temperatura, Longitud,  │
@@ -63,7 +63,7 @@ No usa base de datos: las conversiones se calculan con fórmulas y factores exac
 01. UML/
     01. ERS/        Especificación de requisitos
     02. ECUD/       Especificación de casos de uso CU01–CU08
-    03. DIAGRAMAS/  Casos de uso, actividad, secuencia, clases y arquitectura (.puml + .png)
+    03. DIAGRAMAS/  Casos de uso, actividad, secuencia, clases y arquitectura en PowerDesigner (.oom / .eam + .png)
 02. MER/            No aplica (sin base de datos)
 03. BDD/            No aplica (sin base de datos)
 04. SERVIDOR/       API REST ASP.NET Core Web API (.NET 9) + script para abrir el puerto en red
@@ -124,6 +124,7 @@ GET http://localhost:8086/api/temperatura/celsiusAFahrenheit?valor=100
 
 **Estructura como el GR05:** en los clientes, `modelo/` tiene solo get/set (`Conversion`, `Categoria` y los objetos JSON de `Dtos.cs`), `servicio/` llama al API (`ClienteConversion` Singleton con `HttpClient`; en el móvil `ClienteRest`), `controlador/` solo pasa las llamadas y `vista/` tiene las pantallas, el catálogo de opciones y el formato. Todo va dentro de `ec/edu/monster/`. **Todo lo demás está en el servidor:** el login con **3 intentos** (al tercero el usuario queda bloqueado 2 minutos) y las validaciones (cero absoluto, valores negativos). El cliente solo convierte el texto a número y muestra el `mensaje` del error.
 
+**Interfaces (iguales a las del TI.1.2):** escritorio, web y móvil usan una cuadrícula de tarjetas estilo **Bento** (categoría, conversión, resultado destacado, historial, contador, estado del servidor REST e imagen de Monsters Inc.); la consola muestra el título **MONSTER** en arte ASCII y menús dentro de un marco retro.
 
 El **servidor** está organizado en capas: `Controllers` (recursos REST), `Modelo` (objetos JSON) y `Logica` (cálculos, validación y autenticación). La capa `Logica` es la misma del TI.1.2: solo cambió la forma de exponerla.
 
@@ -155,7 +156,7 @@ public sealed class ClienteConversion
 
 | | TI.1.2 SOAP | TI.1.4 REST |
 |---|---|---|
-| Tecnología del servidor | WCF (.NET Framework 4.7.2) en IIS :8085 | ASP.NET Core Web API (.NET 9) en Kestrel :8086 |
+| Tecnología del servidor | WCF (.NET Framework 4.7.2) en IIS :8085 | ASP.NET Core Web API (.NET 9) en IIS :8086 (Hosting Bundle) |
 | Mensajes | Sobre SOAP en XML | JSON |
 | Contrato | WSDL (`?wsdl`) | OpenAPI / Swagger (`/swagger`) |
 | Operación | `POST` + cabecera `SOAPAction` | Verbo HTTP + URL (`GET /api/masa/kilogramosALibras?valor=1`) |
@@ -347,7 +348,7 @@ En el navegador de cada equipo (otra PC o el celular) abre `http://IP-DEL-SERVID
 |---|---|
 | `01. UML/01. ERS/ERS_CONVERSION_UNIDADES_RESTFUL_DOTNET_GR01.docx` | Especificación de requisitos (IEEE 830): 13 requisitos funcionales y 8 no funcionales |
 | `01. UML/02. ECUD/ECUD_CONVERSION_UNIDADES_RESTFUL_DOTNET_GR01.docx` | Especificación de los casos de uso CU01 a CU08 |
-| `01. UML/03. DIAGRAMAS/` | Diagramas en PlantUML (`.puml`) con su imagen (`.png`) |
+| `01. UML/03. DIAGRAMAS/` | Diagramas en SAP PowerDesigner 16.7 con su imagen (`.png`): `01_CASO_USO` (CU_00 a CU_04), `02_ACTIVIDAD`, `03_SECUENCIA` (DS_01 a DS_08), `04_CLASES` (dominio, servidor y clientes) y `05_ARQUITECTURA` (modelo EAM) |
 | `05. DOCUMENTACIÓN/WS_CONUNI_RESTFUL_DOTNET_GR01.docx` | Manual técnico: marco teórico, arquitectura, desarrollo paso a paso con código, pruebas y conclusiones |
 | `05. DOCUMENTACIÓN/MANUAL_RESTFUL_DOTNET_GR01.pptx` | Presentación (16 diapositivas) |
 | `05. DOCUMENTACIÓN/capturas/` | Capturas reales del servidor (Swagger) y de cada cliente |
