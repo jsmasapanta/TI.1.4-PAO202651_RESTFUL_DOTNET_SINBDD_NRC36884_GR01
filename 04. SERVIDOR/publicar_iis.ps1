@@ -91,4 +91,5 @@ $ips = Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -notma
 Write-Host "`nListo. El servidor queda encendido en IIS. Los demás integrantes usan la URL del adaptador Wi-Fi:" -ForegroundColor Green
 foreach ($ip in $ips) { Write-Host ("   {0,-12} http://{1}:{2}" -f $ip.InterfaceAlias, $ip.IPAddress, $Puerto) }
 Write-Host "`nSwagger: http://localhost:$Puerto/swagger"
+Write-Host "Panel de monitoreo (usuario y clave del API): http://localhost:$Puerto/monitor" -ForegroundColor Green
 Write-Host "Si cambia el código del servidor, vuelva a ejecutar este script."

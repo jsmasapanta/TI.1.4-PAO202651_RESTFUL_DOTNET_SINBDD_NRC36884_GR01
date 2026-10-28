@@ -48,6 +48,8 @@ namespace ec.edu.monster.servicio
                 BaseAddress = new Uri(UrlServidor + "/"),
                 Timeout = TimeSpan.FromSeconds(15)
             };
+            // Para que el panel de monitoreo del servidor sepa qué cliente consume el API.
+            _http.DefaultRequestHeaders.Add("X-Cliente", "Consola");
         }
 
         public string UrlServidor { get; }

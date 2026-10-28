@@ -31,6 +31,8 @@ public class ClienteConversion : IDisposable
             BaseAddress = new Uri(UrlServidor + "/"),
             Timeout = TimeSpan.FromSeconds(15)
         };
+        // Para que el panel de monitoreo del servidor sepa qué cliente consume el API.
+        _http.DefaultRequestHeaders.Add("X-Cliente", "Web");
     }
 
     public string UrlServidor { get; }

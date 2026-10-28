@@ -1,5 +1,6 @@
 using ConversorUnidades.Servidor.Logica;
 using ConversorUnidades.Servidor.Modelo;
+using ConversorUnidades.Servidor.Monitoreo;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 
@@ -36,7 +37,20 @@ builder.Services.AddSwaggerGen(opciones =>
 builder.Services.AddCors(opciones =>
     opciones.AddDefaultPolicy(politica => politica.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
 
+// Sesión del panel /monitor (cookie en memoria; sin base de datos).
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(opciones =>
+{
+    opciones.IdleTimeout = TimeSpan.FromMinutes(30);
+    opciones.Cookie.HttpOnly = true;
+    opciones.Cookie.IsEssential = true;
+});
+
 var app = builder.Build();
+
+// Registra cada petición a api/... en el MonitorServicio (Singleton) para el panel /monitor.
+app.UseRegistroConsumo();
+app.UseSession();
 
 // Swagger queda activo siempre: es la página de pruebas del servidor en la presentación.
 app.UseSwagger();
@@ -48,6 +62,9 @@ app.UseSwaggerUI(opciones =>
 
 app.UseCors();
 app.MapControllers();
+
+// Panel del servidor con login: pestaña Servicio y pestaña Monitoreo de clientes.
+app.MapPanelMonitor();
 
 // La raíz del servidor abre la página de Swagger.
 app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();

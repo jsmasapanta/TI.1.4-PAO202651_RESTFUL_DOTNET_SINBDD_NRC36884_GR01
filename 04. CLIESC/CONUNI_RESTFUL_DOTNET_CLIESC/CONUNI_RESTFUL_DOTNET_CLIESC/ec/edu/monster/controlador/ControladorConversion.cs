@@ -15,6 +15,8 @@ namespace ec.edu.monster.controlador
 
         public string UrlServidor => _servicio.UrlServidor;
 
+        public void CambiarServidor(string url) => _servicio.CambiarServidor(url);
+
         public string UsuarioActual { get; private set; }
 
         public async Task IniciarSesionAsync(string usuario, string clave)

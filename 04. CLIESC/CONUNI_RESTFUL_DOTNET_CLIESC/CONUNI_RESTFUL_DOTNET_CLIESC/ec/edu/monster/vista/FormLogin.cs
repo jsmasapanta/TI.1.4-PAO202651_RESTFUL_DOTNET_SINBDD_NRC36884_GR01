@@ -15,6 +15,7 @@ namespace ec.edu.monster.vista
         private readonly ControladorConversion _controlador;
         private readonly TextBox _txtUsuario;
         private readonly TextBox _txtClave;
+        private readonly TextBox _txtServidor;
         private readonly Button _btnIngresar;
         private readonly Label _lblMensaje;
 
@@ -85,19 +86,19 @@ namespace ec.edu.monster.vista
             };
             celdaFormulario.Controls.AddRange(new Control[] { lblIniciar, lblUsuario, _txtUsuario, lblClave, _txtClave, chkMostrar, _btnIngresar, _lblMensaje });
 
-            // ---------- Servidor ----------
+            // ---------- Servidor (editable: IP de la PC donde corre el API) ----------
             var celdaServidor = new TarjetaBento { Location = new Point(428, 430), Size = new Size(416, 54), Relleno = Tema.VerdeClaro };
-            var lblServidor = new Label
+            var lblServidor = Tema.Etiqueta("Servidor REST", 8.5f, FontStyle.Bold, Tema.Verde);
+            lblServidor.Location = new Point(16, 5);
+            _txtServidor = new TextBox
             {
-                Text = "Servidor REST: " + _controlador.UrlServidor,
-                Location = new Point(18, 8),
-                Size = new Size(380, 38),
-                TextAlign = ContentAlignment.MiddleLeft,
-                ForeColor = Tema.Verde,
-                BackColor = Color.Transparent,
-                Font = Tema.Fuente(8.5f, FontStyle.Bold)
+                Text = _controlador.UrlServidor,
+                Location = new Point(18, 24),
+                Width = 380,
+                Font = Tema.Fuente(9.5f),
+                BorderStyle = BorderStyle.FixedSingle
             };
-            celdaServidor.Controls.Add(lblServidor);
+            celdaServidor.Controls.AddRange(new Control[] { lblServidor, _txtServidor });
 
             Controls.AddRange(new Control[] { celdaImagen, celdaMarca, celdaFormulario, celdaServidor });
             AcceptButton = _btnIngresar;
@@ -109,6 +110,8 @@ namespace ec.edu.monster.vista
             CambiarEstadoEspera(true);
             try
             {
+                _controlador.CambiarServidor(_txtServidor.Text);
+                _txtServidor.Text = _controlador.UrlServidor;
                 await _controlador.IniciarSesionAsync(_txtUsuario.Text, _txtClave.Text);
                 DialogResult = DialogResult.OK;
                 Close();

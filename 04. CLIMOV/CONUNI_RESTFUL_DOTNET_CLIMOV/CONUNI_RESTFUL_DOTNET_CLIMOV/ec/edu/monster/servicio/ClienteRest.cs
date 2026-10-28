@@ -37,6 +37,8 @@ public sealed class ClienteRest
     private ClienteRest()
     {
         _http = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
+        // Para que el panel de monitoreo del servidor sepa que la petición viene del móvil.
+        _http.DefaultRequestHeaders.Add("X-Cliente", "Movil");
     }
 
     /// <summary>URL base del servidor; se guarda en el teléfono para no escribirla cada vez.</summary>
